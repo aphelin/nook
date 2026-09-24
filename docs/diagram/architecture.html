@@ -1,0 +1,350 @@
+<!doctype html>
+<!--
+  Source of docs/media/architecture-{light,dark}.png, the README's architecture diagram.
+  Rendered by scripts/readme-media.mjs (1200 CSS px wide at 2x); ?theme=dark switches the neutrals.
+  Coordinates are laid out by hand on a 1200 × 940 canvas: boxes are absolutely placed, and the
+  connectors in the SVG layer use the same numbers.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>How Nook is built</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,400..900&family=Schibsted+Grotesk:wght@400..800&display=block"
+    />
+    <style>
+      :root {
+        /* DESIGN.md neutrals; the house kit (Pitch field, Stripe Gold mark) is theme-invariant. */
+        --chalk: #f1f3f4;
+        --paper: #fafbfc;
+        --ink: #16181b;
+        --ink-2: #4a4f57;
+        --line: #d5d9dc;
+        --line-strong: #979ea3;
+        --field: #0e5b3f;
+        --mark: #f2c12e;
+        --on-field: #ffffff;
+        --on-mark: #16181b;
+        /* The realtime path: field in light mode, as the app's signal colour; the dark presence green in dark. */
+        --signal: var(--field);
+        --display: "Big Shoulders", "Arial Narrow", sans-serif;
+        --body: "Schibsted Grotesk", system-ui, sans-serif;
+      }
+      :root[data-theme="dark"] {
+        --chalk: #121416;
+        --paper: #1a1d20;
+        --ink: #eef0ec;
+        --ink-2: #a9afb6;
+        --line: #2d3136;
+        --line-strong: #5a6068;
+        --signal: #4cc27a;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        background: var(--chalk);
+        color: var(--ink);
+        font: 400 17px/1.35 var(--body);
+        font-feature-settings: "ss01";
+        -webkit-font-smoothing: antialiased;
+      }
+      #canvas {
+        position: relative;
+        width: 1200px;
+        height: 940px;
+        overflow: hidden;
+        background: var(--chalk);
+      }
+      .abs {
+        position: absolute;
+      }
+      h1 {
+        font: 900 44px/0.95 var(--display);
+        font-variation-settings: "opsz" 72;
+        text-transform: uppercase;
+        letter-spacing: 0.005em;
+      }
+      .lede {
+        margin-top: 10px;
+        color: var(--ink-2);
+        font-size: 17px;
+      }
+      code {
+        font: 500 16px/1 ui-monospace, monospace;
+        color: var(--ink);
+        background: color-mix(in oklab, var(--ink) 7%, transparent);
+        padding: 3px 6px;
+        border-radius: 4px;
+      }
+
+      /* The compose project wears the house kit, like a nook's team sheet. */
+      .frame {
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .frame-band {
+        min-height: 44px;
+        background: var(--field);
+        color: var(--on-field);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 9px 18px;
+      }
+      /* The kit's mark stripe under the field band, as on the team sheet. */
+      .frame-stripe {
+        height: 3px;
+        background: var(--mark);
+      }
+      .frame-band b {
+        font: 800 22px/1 var(--display);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+      .frame-band span {
+        font-size: 15px;
+        opacity: 0.86;
+      }
+      .crest {
+        width: 26px;
+        height: 26px;
+        border-radius: 25%;
+        background-color: var(--field);
+        background-image: linear-gradient(90deg, transparent 59%, var(--mark) 59% 75%, #fff 75% 80%, transparent 80%);
+        box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.55);
+        display: grid;
+        place-items: center start;
+        padding-left: 3px;
+        font: 900 15px/1 var(--display);
+        color: #fff;
+      }
+
+      .box {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 16px 14px;
+      }
+      .box.outside {
+        border-color: var(--line-strong);
+      }
+      .box.once {
+        background: transparent;
+        border: 1px dashed var(--line-strong);
+        padding: 10px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .name {
+        font: 800 27px/1 var(--display);
+        font-variation-settings: "opsz" 40;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+      }
+      .once .name {
+        font-size: 22px;
+      }
+      .tech {
+        margin-top: 3px;
+        color: var(--ink-2);
+        font-size: 15px;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 9px;
+        display: grid;
+        gap: 4px;
+      }
+      li {
+        font-size: 16px;
+        line-height: 1.35;
+      }
+      .realtime {
+        color: var(--signal);
+        font-weight: 700;
+      }
+
+      svg {
+        position: absolute;
+        inset: 0;
+        overflow: visible;
+      }
+      .wire {
+        fill: none;
+        stroke: var(--ink-2);
+        stroke-width: 2;
+      }
+      .wire.rt {
+        stroke: var(--signal);
+        stroke-width: 3;
+      }
+      .wire.dash {
+        stroke-dasharray: 7 6;
+      }
+      .tip {
+        fill: var(--ink-2);
+      }
+      .tip.rt {
+        fill: var(--signal);
+      }
+      .wire-label {
+        font: 600 15px/1.35 var(--body);
+        color: var(--ink-2);
+        background: var(--chalk);
+        padding: 1px 4px;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas" role="img" aria-label="Nook architecture: the browser reaches nginx, which serves the Next.js web app and round-robins two NestJS api replicas; the replicas share Postgres, Redis and S3 storage with a BullMQ worker; the browser uploads straight to storage on presigned URLs.">
+      <div class="abs" style="left: 20px; top: 26px; width: 1160px">
+        <h1>One command, nine containers</h1>
+        <p class="lede"><code>docker compose up -d --build</code> &ensp;brings up the whole stack: a modular monolith, scaled sideways.</p>
+      </div>
+
+      <!-- The compose project -->
+      <div class="abs frame" style="left: 240px; top: 130px; width: 940px; height: 722px">
+        <div class="frame-band"><span class="crest">N</span><b>Docker Compose</b><span>project nook &middot; one network</span></div>
+        <div class="frame-stripe"></div>
+      </div>
+
+      <!-- Browser, outside the project -->
+      <div class="abs box outside" style="left: 20px; top: 330px; width: 190px; height: 214px">
+        <div class="name">Browser</div>
+        <div class="tech">HTTP + WebSocket</div>
+        <ul>
+          <li>Access token in memory only</li>
+          <li>Refresh in an httpOnly cookie</li>
+          <li>Optimistic sends</li>
+        </ul>
+      </div>
+
+      <div class="abs box" style="left: 262px; top: 330px; width: 172px; height: 214px">
+        <div class="name">nginx</div>
+        <div class="tech">the one front door</div>
+        <ul>
+          <li>/ &rarr; web</li>
+          <li>/api, /socket.io &rarr; api-1, api-2</li>
+          <li>Found via Docker DNS</li>
+        </ul>
+      </div>
+
+      <!-- App tier -->
+      <div class="abs box" style="left: 486px; top: 196px; width: 300px; height: 96px">
+        <div class="name">web</div>
+        <div class="tech">Next.js 16 &middot; App Router &middot; Base UI</div>
+        <ul>
+          <li>Tailwind v4, no component kit</li>
+        </ul>
+      </div>
+      <div class="abs box" style="left: 486px; top: 312px; width: 300px; height: 132px">
+        <div class="name">api-1</div>
+        <div class="tech">NestJS 12 &middot; Prisma 7 &middot; Socket.IO</div>
+        <ul>
+          <li>auth, nooks, messages, presence, uploads, search, notifications</li>
+        </ul>
+      </div>
+      <div class="abs box" style="left: 486px; top: 464px; width: 300px; height: 112px">
+        <div class="name">api-2</div>
+        <div class="tech">same image, second replica</div>
+        <ul>
+          <li>Any request, any socket, either one</li>
+        </ul>
+      </div>
+      <div class="abs box once" style="left: 486px; top: 596px; width: 300px; height: 62px">
+        <div class="name">migrate</div>
+        <div class="tech">migrations + demo seed, then exits</div>
+      </div>
+      <div class="abs box" style="left: 486px; top: 676px; width: 300px; height: 152px">
+        <div class="name">worker</div>
+        <div class="tech">BullMQ &middot; same code, own entrypoint</div>
+        <ul>
+          <li>Thumbnails and avatars (sharp)</li>
+          <li>Link previews, SSRF-guarded</li>
+          <li class="realtime">Live updates out through Redis</li>
+        </ul>
+      </div>
+
+      <!-- Data tier -->
+      <div class="abs box" style="left: 862px; top: 196px; width: 300px; height: 158px">
+        <div class="name">Postgres 18</div>
+        <div class="tech">the source of truth</div>
+        <ul>
+          <li>UUIDv7 ids: history pages by id</li>
+          <li>Full-text search: tsvector + GIN</li>
+          <li>Unread: id past your read pointer</li>
+        </ul>
+      </div>
+      <div class="abs box" style="left: 862px; top: 380px; width: 300px; height: 196px">
+        <div class="name">Redis 8</div>
+        <div class="tech">what the replicas share</div>
+        <ul>
+          <li class="realtime">Socket.IO adapter: an event on either replica reaches every socket</li>
+          <li>Presence leases, one Lua script</li>
+          <li>Rate limits &middot; BullMQ queues</li>
+        </ul>
+      </div>
+      <div class="abs box" style="left: 862px; top: 676px; width: 300px; height: 152px">
+        <div class="name">SeaweedFS</div>
+        <div class="tech">S3-compatible, private bucket</div>
+        <ul>
+          <li>Files, thumbnails, avatars</li>
+          <li>Hour-stable presigned GETs, so browsers cache them</li>
+        </ul>
+      </div>
+
+      <svg width="1200" height="940" viewBox="0 0 1200 940" aria-hidden="true">
+        <defs>
+          <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+            <path class="tip" d="M0 0 L10 5 L0 10 z" />
+          </marker>
+          <marker id="tip-rt" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+            <path class="tip rt" d="M0 0 L10 5 L0 10 z" />
+          </marker>
+        </defs>
+
+        <!-- Browser -> nginx -->
+        <path class="wire" d="M210 437 H261" marker-end="url(#tip)" />
+
+        <!-- nginx -> web, api-1, api-2 over a trunk at x=460 -->
+        <path class="wire" d="M434 437 H460" />
+        <path class="wire" d="M460 242 V520" />
+        <path class="wire" d="M460 242 H485" marker-end="url(#tip)" />
+        <path class="wire" d="M460 378 H485" marker-end="url(#tip)" />
+        <path class="wire" d="M460 520 H485" marker-end="url(#tip)" />
+
+        <!-- api replicas -> Postgres (Prisma) over a trunk at x=824 -->
+        <path class="wire" d="M786 350 H824 V275 H861" marker-end="url(#tip)" />
+        <path class="wire" d="M786 490 H824 V350" />
+
+        <!-- The realtime path: both replicas and the worker meet in Redis -->
+        <path class="wire rt" d="M786 408 H861" marker-start="url(#tip-rt)" marker-end="url(#tip-rt)" />
+        <path class="wire rt" d="M786 540 H861" marker-start="url(#tip-rt)" marker-end="url(#tip-rt)" />
+        <path class="wire rt" d="M786 800 H842 V564 H861" marker-start="url(#tip-rt)" marker-end="url(#tip-rt)" />
+
+        <!-- worker -> storage -->
+        <path class="wire" d="M786 736 H861" marker-end="url(#tip)" />
+
+        <!-- Browser -> storage directly, on presigned URLs -->
+        <path class="wire dash" d="M115 544 V884 H1012 V829" marker-end="url(#tip)" />
+      </svg>
+
+      <!-- Wire labels -->
+      <div class="abs wire-label" style="left: 38px; top: 896px">
+        Uploads and images go straight to storage on presigned URLs. The api signs them and checks the result; it never streams file bytes.
+      </div>
+    </div>
+    <script>
+      if (new URLSearchParams(location.search).get("theme") === "dark") document.documentElement.dataset.theme = "dark";
+    </script>
+  </body>
+</html>

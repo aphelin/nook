@@ -1,0 +1,21 @@
+packages:
+  - apps/*
+  - packages/*
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
+  "@prisma/engines": true
+  prisma: true
+  "@nestjs/core": true
+  oxlint-tsgolint: true
+  msgpackr-extract: true
+  argon2: true
+  esbuild: true
+# The public registry is slow at times; be patient rather than fail builds.
+fetchTimeout: 300000
+fetchRetries: 6
+networkConcurrency: 8
+minimumReleaseAgeExclude:
+  - '@aws-sdk/client-s3@3.1135.0'
+  - '@aws-sdk/s3-request-presigner@3.1135.0'
+  - prettier@3.9.8

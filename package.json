@@ -1,0 +1,26 @@
+{
+  "name": "nook",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "db:migrate": "pnpm --filter @nook/api prisma:migrate",
+    "db:seed": "pnpm --filter @nook/api db:seed",
+    "stack:up": "docker compose up -d --build",
+    "stack:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "prettier": "3.9.8",
+    "socket.io-client": "4.8.3",
+    "turbo": "2.10.13",
+    "typescript": "6.0.3"
+  }
+}

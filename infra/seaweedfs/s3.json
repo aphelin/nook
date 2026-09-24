@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "nook",
+      "credentials": [{ "accessKey": "nook", "secretKey": "nook-dev-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+node_modules
+dist
+.next
+.turbo
+*.tsbuildinfo
+.env
+.env.local
+coverage
+apps/api/src/generated
+.unlazy/
+.unlazy-hook-state.json
+.claude/settings.local.json
+.impeccable/tmp/
+.impeccable/config.local.json
+.impeccable/questions/
+test-results/
+playwright-report/
+
+# unlazy acceptance ledger working files
+.unlazy/
+.unlazy-hook-state.json
+
+# Local design and planning working files
+.impeccable/
+docs/design-options/
+docs/gates/
+docs/redesign/
+PLAN.md
+GATES.md

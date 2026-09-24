@@ -1,0 +1,503 @@
+@import "tailwindcss";
+
+/*
+ * Nook's tokens: Story Mode.
+ *
+ * The club's colours are the app. Every nook's kit is spent at full scale (lib/accent): the wing
+ * (rail and channel list) in its deep colour, the stage (the room) drenched in its bright colour by
+ * day and its deep colour by night, and cards (the composer, popovers, dialogs, panels, anything
+ * about you) in flat white by day and near-black by night. A pop colour, picked per kit, is the
+ * loud thing that is neither of the club's.
+ *
+ * Each surface class maps its kit tokens onto one vocabulary — bg, fg, fg-2, hi, on-hi, chip,
+ * ring and three face colours — so anything placed on a surface reads on it without knowing which
+ * one it is on. Flat colour against colour is the whole depth system: no gradients, no grain, no
+ * glow, no outlines; only floating cards cast one soft shadow.
+ *
+ * The values below are the house kit's (navy and orange, the demo climbing club's), worn wherever
+ * no nook is in scope. A nook in scope overrides them on its subtree and on the document root, so
+ * portalled popups are in the same club.
+ */
+:root {
+  color-scheme: light dark;
+
+  --wing-bg: light-dark(#1c476e, #0c1721);
+  --wing-fg: light-dark(#ffffff, #ffffff);
+  --wing-fg2: light-dark(#d0dbe0, #bbbec1);
+  --wing-hi: light-dark(#f28c28, #f28c28);
+  --wing-on-hi: light-dark(#091825, #091825);
+  --wing-chip: light-dark(#375d7f, #29333c);
+  --wing-on-chip: light-dark(#ffffff, #ffffff);
+  --wing-ring: light-dark(#ff8ac2, #ff8ac2);
+  --wing-face-1: light-dark(#f28c28, #f28c28);
+  --wing-on-face-1: light-dark(#091825, #091825);
+  --wing-face-2: light-dark(#ff8ac2, #ff8ac2);
+  --wing-on-face-2: light-dark(#091825, #091825);
+  --wing-face-3: light-dark(#ffffff, #ffffff);
+  --wing-on-face-3: light-dark(#1c476e, #0c1721);
+  --rail-bg: light-dark(#122e47, #081017);
+  --rail-fg: light-dark(#ffffff, #ffffff);
+  --rail-fg2: light-dark(#bdc4cb, #babcbe);
+  --rail-hi: light-dark(#f28c28, #f28c28);
+  --rail-on-hi: light-dark(#091825, #091825);
+  --rail-chip: light-dark(#2e475d, #262d33);
+  --rail-on-chip: light-dark(#ffffff, #ffffff);
+  --rail-ring: light-dark(#ff8ac2, #ff8ac2);
+  --rail-face-1: light-dark(#f28c28, #f28c28);
+  --rail-on-face-1: light-dark(#091825, #091825);
+  --rail-face-2: light-dark(#ff8ac2, #ff8ac2);
+  --rail-on-face-2: light-dark(#091825, #091825);
+  --rail-face-3: light-dark(#ffffff, #ffffff);
+  --rail-on-face-3: light-dark(#1c476e, #0c1721);
+  --stage-bg: light-dark(#f39539, #163755);
+  --stage-fg: light-dark(#091825, #fef8f2);
+  --stage-fg2: light-dark(#322b24, #bec7cf);
+  --stage-hi: light-dark(#1c476e, #f28c28);
+  --stage-on-hi: light-dark(#ffffff, #091825);
+  --stage-chip: light-dark(#ffffff, #34516b);
+  --stage-on-chip: light-dark(#091825, #fef8f2);
+  --stage-ring: light-dark(#091825, #f28c28);
+  --stage-face-1: light-dark(#1c476e, #f28c28);
+  --stage-on-face-1: light-dark(#f39539, #091825);
+  --stage-face-2: light-dark(#091825, #ff8ac2);
+  --stage-on-face-2: light-dark(#f39539, #091825);
+  --stage-face-3: light-dark(#ffffff, #fef8f2);
+  --stage-on-face-3: light-dark(#091825, #163755);
+  --card-bg: light-dark(#ffffff, #0b1722);
+  --card-fg: light-dark(#091825, #f6f3f3);
+  --card-fg2: light-dark(#555f67, #acb0b4);
+  --card-hi: light-dark(#1c476e, #f28c28);
+  --card-on-hi: light-dark(#ffffff, #091825);
+  --card-chip: light-dark(#fdeddd, #302a23);
+  --card-on-chip: light-dark(#091825, #f6f3f3);
+  --card-ring: light-dark(#1c476e, #f28c28);
+  --card-face-1: light-dark(#f28c28, #f28c28);
+  --card-on-face-1: light-dark(#091825, #091825);
+  --card-face-2: light-dark(#1c476e, #ff8ac2);
+  --card-on-face-2: light-dark(#ffffff, #091825);
+  --card-face-3: light-dark(#ff8ac2, #163755);
+  --card-on-face-3: light-dark(#091825, #f6f3f3);
+  --stage-title: light-dark(#091825, #f28c28);
+  --pop: light-dark(#ff8ac2, #ff8ac2);
+  --on-pop: light-dark(#091825, #091825);
+  --club-bright: light-dark(#f28c28, #f28c28);
+  --club-deep: light-dark(#1c476e, #1c476e);
+  --alert: light-dark(#c4262e, #ff8f86);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /*
+   * A little past and back, for arrivals only: a person, a count or a sent message lands like a
+   * sticker slapped down, once. Hover and state changes use the plain expo ease-out.
+   */
+  --ease-pop: cubic-bezier(0.3, 1.4, 0.55, 1);
+
+  --shadow-card:
+    0 1px 2px light-dark(rgb(10 12 20 / 0.08), rgb(0 0 0 / 0.4)), 0 10px 30px -10px light-dark(rgb(10 12 20 / 0.28), rgb(0 0 0 / 0.65));
+  --shadow-float:
+    0 2px 6px light-dark(rgb(10 12 20 / 0.1), rgb(0 0 0 / 0.45)), 0 24px 56px -14px light-dark(rgb(10 12 20 / 0.36), rgb(0 0 0 / 0.75));
+}
+
+@theme inline {
+  /* The surface you are on, whichever it is. */
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-hi: var(--hi);
+  --color-on-hi: var(--on-hi);
+  --color-chip: var(--chip);
+  --color-on-chip: var(--on-chip);
+  --color-ring: var(--ring);
+  --color-face-1: var(--face-1);
+  --color-face-2: var(--face-2);
+  --color-face-3: var(--face-3);
+  --color-on-face-1: var(--on-face-1);
+  --color-on-face-2: var(--on-face-2);
+  --color-on-face-3: var(--on-face-3);
+  --color-hover: color-mix(in oklab, var(--fg) 8%, transparent);
+  --color-hover-strong: color-mix(in oklab, var(--fg) 14%, transparent);
+  --color-line: color-mix(in oklab, var(--fg) 14%, transparent);
+  --color-line-strong: color-mix(in oklab, var(--fg) 30%, transparent);
+
+  /* The surfaces by name, for the few places that paint one without being one. */
+  --color-wing: var(--wing-bg);
+  --color-rail: var(--rail-bg);
+  --color-stage: var(--stage-bg);
+  --color-card: var(--card-bg);
+  --color-pop: var(--pop);
+  --color-on-pop: var(--on-pop);
+  --color-title: var(--title, var(--fg));
+  --color-club-bright: var(--club-bright);
+  --color-club-deep: var(--club-deep);
+  --color-alert: var(--alert);
+
+  --font-sans: var(--font-funnel-sans), ui-sans-serif, system-ui, sans-serif;
+  /*
+   * The loud voice. Funnel Display at 800 names things at poster size: nooks, channels, people in
+   * an opening, page heads, the wordmark. Everything read or pressed is Funnel Sans.
+   */
+  --font-display: var(--font-funnel-display), var(--font-funnel-sans), ui-sans-serif, sans-serif;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.0625rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.1875rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.4375rem;
+  --text-md: 1rem;
+  --text-md--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.875rem;
+  --text-2xl--line-height: 1.9375rem;
+  --text-3xl: 2.75rem;
+  --text-3xl--line-height: 1;
+  --text-4xl: clamp(3rem, 7.4vw, 6rem);
+  --text-4xl--line-height: 0.92;
+
+  /* Big and round: pills for what you press, 28px for what holds content. */
+  --radius-chip: 0.625rem;
+  --radius-field: 1rem;
+  --radius-card: 1.75rem;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+  --ease-out-expo: var(--ease);
+}
+
+@layer base {
+  html {
+    background-color: var(--stage-bg);
+    color: var(--stage-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+  }
+
+  /* The surfaces the browser draws take the colours of whatever they sit on. */
+  ::selection {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  input,
+  textarea,
+  [contenteditable] {
+    caret-color: var(--fg);
+  }
+
+  :focus-visible {
+    outline: 2.5px solid var(--fg);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--fg) 30%, transparent) transparent;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1.5px;
+  }
+
+  time,
+  [data-num] {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /*
+   * Surfaces. Each one maps its kit tokens onto the shared vocabulary and paints itself. Declared
+   * on the element that is the surface, so the var() inside resolves against the club in scope
+   * there (a custom property that uses var() is computed where it is declared).
+   */
+  .surface-wing,
+  .surface-rail,
+  .surface-stage,
+  .surface-card {
+    background-color: var(--bg);
+    color: var(--fg);
+    --halo: var(--bg);
+  }
+
+  .surface-wing,
+  .surface-rail,
+  .surface-card {
+    --title: var(--fg);
+  }
+
+  .surface-wing {
+    --bg: var(--wing-bg);
+    --fg: var(--wing-fg);
+    --fg-2: var(--wing-fg2);
+    --hi: var(--wing-hi);
+    --on-hi: var(--wing-on-hi);
+    --chip: var(--wing-chip);
+    --on-chip: var(--wing-on-chip);
+    --ring: var(--wing-ring);
+    --face-1: var(--wing-face-1);
+    --face-2: var(--wing-face-2);
+    --face-3: var(--wing-face-3);
+    --on-face-1: var(--wing-on-face-1);
+    --on-face-2: var(--wing-on-face-2);
+    --on-face-3: var(--wing-on-face-3);
+  }
+
+  .surface-rail {
+    --bg: var(--rail-bg);
+    --fg: var(--rail-fg);
+    --fg-2: var(--rail-fg2);
+    --hi: var(--rail-hi);
+    --on-hi: var(--rail-on-hi);
+    --chip: var(--rail-chip);
+    --on-chip: var(--rail-on-chip);
+    --ring: var(--rail-ring);
+    --face-1: var(--rail-face-1);
+    --face-2: var(--rail-face-2);
+    --face-3: var(--rail-face-3);
+    --on-face-1: var(--rail-on-face-1);
+    --on-face-2: var(--rail-on-face-2);
+    --on-face-3: var(--rail-on-face-3);
+  }
+
+  .surface-stage {
+    /* Large headings only: the night value is the club's bright colour, certified at 3:1 on the room. */
+    --title: var(--stage-title);
+    --bg: var(--stage-bg);
+    --fg: var(--stage-fg);
+    --fg-2: var(--stage-fg2);
+    --hi: var(--stage-hi);
+    --on-hi: var(--stage-on-hi);
+    --chip: var(--stage-chip);
+    --on-chip: var(--stage-on-chip);
+    --ring: var(--stage-ring);
+    --face-1: var(--stage-face-1);
+    --face-2: var(--stage-face-2);
+    --face-3: var(--stage-face-3);
+    --on-face-1: var(--stage-on-face-1);
+    --on-face-2: var(--stage-on-face-2);
+    --on-face-3: var(--stage-on-face-3);
+  }
+
+  .surface-card {
+    --bg: var(--card-bg);
+    --fg: var(--card-fg);
+    --fg-2: var(--card-fg2);
+    --hi: var(--card-hi);
+    --on-hi: var(--card-on-hi);
+    --chip: var(--card-chip);
+    --on-chip: var(--card-on-chip);
+    --ring: var(--card-ring);
+    --face-1: var(--card-face-1);
+    --face-2: var(--card-face-2);
+    --face-3: var(--card-face-3);
+    --on-face-1: var(--card-on-face-1);
+    --on-face-2: var(--card-on-face-2);
+    --on-face-3: var(--card-on-face-3);
+  }
+
+  /*
+   * The re-tint. Switching nooks swaps the kit on the document root; anything painted from it
+   * carries this class so the colours travel rather than cut, under the wipe. The feedback
+   * properties live here too, because a `transition-*` utility on the same element would out-rank
+   * this rule and kill the re-tint.
+   */
+  .tint {
+    transition:
+      background-color 360ms var(--ease),
+      border-color 360ms var(--ease),
+      color 360ms var(--ease),
+      fill 360ms var(--ease),
+      stroke 360ms var(--ease),
+      outline-color 360ms var(--ease),
+      box-shadow 200ms var(--ease),
+      filter 200ms var(--ease),
+      scale 200ms var(--ease),
+      transform 200ms var(--ease),
+      opacity 200ms var(--ease);
+  }
+
+  /*
+   * The channel's name at the head of the room, at poster size. Sized from the room's own width
+   * (a container), so it shrinks when a thread opens beside it, and trimmed to cap height and
+   * baseline so it sits flush on the room's top edge.
+   */
+  .room-title {
+    color: var(--title, var(--fg));
+    font-size: clamp(2.25rem, 6.2cqi, 4.75rem);
+    line-height: 0.9;
+    letter-spacing: -0.035em;
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* A head trimmed to cap height and baseline, clipping without cutting the descenders. */
+  .head-trim {
+    text-box: trim-both cap alphabetic;
+    overflow: clip;
+    overflow-clip-margin: 0.35em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Arriving: a shape, a count, a person landing in the room. Slapped down, once. */
+  @keyframes pop-in {
+    from {
+      scale: 0.4;
+      opacity: 0;
+    }
+  }
+
+  .pop-in {
+    animation: pop-in 380ms var(--ease-pop) both;
+  }
+
+  /* A message you sent lands from the composer. */
+  @keyframes arrive {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem) scale(0.96);
+    }
+  }
+
+  .arrive {
+    animation: arrive 320ms var(--ease-pop) both;
+  }
+
+  @keyframes press {
+    50% {
+      scale: 0.9;
+    }
+  }
+
+  .press:active {
+    animation: press 180ms var(--ease);
+  }
+
+  @keyframes typing {
+    0%,
+    60%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+  }
+
+  .typing-dot {
+    animation: typing 1.2s var(--ease) infinite;
+  }
+
+  /* Coming from the inbox or a search: the message you came for flashes the surface's highlight. */
+  @keyframes settle {
+    from {
+      background-color: color-mix(in oklab, var(--fg) 16%, transparent);
+    }
+    to {
+      background-color: transparent;
+    }
+  }
+
+  .settle > * {
+    animation: settle 2.4s var(--ease) 0.2s both;
+    border-radius: var(--radius-field);
+  }
+
+  /*
+   * The wipe. Changing nooks, the new club's colour sweeps out from the disc you pressed as a
+   * growing circle, like a story advancing, then lifts away to show the room already re-tinted.
+   */
+  @keyframes wipe-open {
+    from {
+      clip-path: circle(0 at var(--wipe-x, 2.5rem) var(--wipe-y, 6rem));
+    }
+    to {
+      clip-path: circle(150vmax at var(--wipe-x, 2.5rem) var(--wipe-y, 6rem));
+    }
+  }
+
+  @keyframes wipe-lift {
+    to {
+      opacity: 0;
+    }
+  }
+
+  .wipe {
+    animation:
+      wipe-open 420ms var(--ease) both,
+      wipe-lift 220ms var(--ease) 420ms forwards;
+  }
+
+  /*
+   * A field's error is always a small card, whatever surface the field sits on: the alert colour is
+   * only certified on cards, and an error set straight onto the club's colour would not read.
+   */
+  /* A story's progress mark filling from the left over the length of the story. */
+  @keyframes story-progress {
+    from {
+      scale: 0 1;
+    }
+  }
+
+  .story-progress {
+    transform-origin: left;
+    animation: story-progress var(--story-ms, 10s) linear both;
+  }
+
+  .field-error:not(:empty) {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    width: fit-content;
+    padding: 0.375rem 0.875rem 0.375rem 0.625rem;
+    border-radius: 1rem;
+    background-color: var(--card-bg);
+    color: var(--alert);
+  }
+
+  .field-error:not(:empty)::before {
+    content: "";
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.125rem;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M128 20a108 108 0 1 0 108 108A108.12 108.12 0 0 0 128 20Zm-12 52a12 12 0 0 1 24 0v60a12 12 0 0 1-24 0Zm12 124a16 16 0 1 1 16-16 16 16 0 0 1-16 16Z'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tint,
+  .pop-in,
+  .arrive,
+  .press:active,
+  .typing-dot,
+  .settle > *,
+  .wipe,
+  .story-progress {
+    transition: none;
+    animation: none;
+  }
+
+  .wipe {
+    display: none;
+  }
+
+  .settle > * {
+    background-color: color-mix(in oklab, var(--fg) 10%, transparent);
+  }
+
+  [data-starting-style],
+  [data-ending-style] {
+    scale: none !important;
+    transform: none !important;
+  }
+}
