@@ -1,7 +1,7 @@
 "use client";
 
 import type { NookMember } from "@nook/contracts";
-import { type KeyboardEvent, type ReactNode, type RefObject, useId, useState } from "react";
+import { type KeyboardEvent, type ReactNode, type RefObject, useId, useLayoutEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 
 const MAX_SUGGESTIONS = 6;
@@ -53,6 +53,17 @@ export function useMentionMenu(
   const [active, setActive] = useState(0);
   // Escape hides the menu for this "@..." only; typing a new one brings it back.
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
+  // Where the caret goes once the picked mention is in the box. Set in the same commit as the new
+  // value, before the next key can arrive: a caret placed a frame later would land keys typed in
+  // between at the end, then jump back and split the sentence around them.
+  const caretAfterPick = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    const pos = caretAfterPick.current;
+    if (pos === null) return;
+    caretAfterPick.current = null;
+    input.current?.focus();
+    input.current?.setSelectionRange(pos, pos);
+  });
 
   const at = queryAt(value, caret);
   const options = at ? people.filter((m) => matches(m, at.query)).slice(0, MAX_SUGGESTIONS) : [];
@@ -70,17 +81,13 @@ export function useMentionMenu(
 
   function pick(m: NookMember) {
     if (!at) return;
-    const el = input.current;
     const end = at.start + 1 + at.query.length;
     const insert = `@${m.handle} `;
     const next = value.slice(0, at.start) + insert + value.slice(end);
     setValue(next);
     const pos = at.start + insert.length;
     setCaret(pos);
-    requestAnimationFrame(() => {
-      el?.focus();
-      el?.setSelectionRange(pos, pos);
-    });
+    caretAfterPick.current = pos;
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>): boolean {

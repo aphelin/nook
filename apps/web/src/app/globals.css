@@ -75,8 +75,8 @@
   --card-on-face-1: light-dark(#091825, #091825);
   --card-face-2: light-dark(#1c476e, #ff8ac2);
   --card-on-face-2: light-dark(#ffffff, #091825);
-  --card-face-3: light-dark(#ff8ac2, #163755);
-  --card-on-face-3: light-dark(#091825, #f6f3f3);
+  --card-face-3: light-dark(#ff8ac2, #f6f3f3);
+  --card-on-face-3: light-dark(#091825, #0b1722);
   --stage-title: light-dark(#091825, #f28c28);
   --pop: light-dark(#ff8ac2, #ff8ac2);
   --on-pop: light-dark(#091825, #091825);
@@ -303,7 +303,7 @@
 
   /*
    * The re-tint. Switching nooks swaps the kit on the document root; anything painted from it
-   * carries this class so the colours travel rather than cut, under the wipe. The feedback
+   * carries this class so the colours travel rather than cut (a story turn switches it off). The feedback
    * properties live here too, because a `transition-*` utility on the same element would out-rank
    * this rule and kill the re-tint.
    */
@@ -354,6 +354,33 @@
 
   .pop-in {
     animation: pop-in 380ms var(--ease-pop) both;
+  }
+
+  /*
+   * The landing's crowd waits below the floor until its script has placed it, so nobody is seen
+   * standing still before they jump in. Without a script, or with reduced motion, it just stands.
+   */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .crowd:not([data-landed]) [data-jump] {
+      visibility: hidden;
+    }
+  }
+
+  /*
+   * Someone arriving: the ring in their own outline grows out from them, like a story ring
+   * appearing. Drawn on the ring alone (its own `scale`, composed with the path's transform).
+   */
+  @keyframes ring-in {
+    from {
+      scale: 0.72;
+      opacity: 0;
+    }
+  }
+
+  .ring-in {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ring-in 460ms var(--ease-pop) both;
   }
 
   /* A message you sent lands from the composer. */
@@ -411,28 +438,39 @@
   }
 
   /*
-   * The wipe. Changing nooks, the new club's colour sweeps out from the disc you pressed as a
-   * growing circle, like a story advancing, then lifts away to show the room already re-tinted.
+   * The story turn (story-turn.ts). Changing clubs, the browser snapshots the room being left and
+   * the room arriving, and the two turn together about their shared edge like two faces of a cube:
+   * forward (`next`), the old face swings away to the left as the new one swings in from the right;
+   * back (`prev`), the other way. The faces darken as they turn edge-on, and behind them is the new
+   * club's rail colour. While it runs, the usual re-tint is off, so the incoming face arrives in its
+   * own colours rather than blending there.
    */
-  @keyframes wipe-open {
+  @keyframes turn-out-next {
+    to {
+      transform: translateX(-100%) rotateY(-90deg);
+      filter: brightness(0.55);
+    }
+  }
+
+  @keyframes turn-in-next {
     from {
-      clip-path: circle(0 at var(--wipe-x, 2.5rem) var(--wipe-y, 6rem));
-    }
-    to {
-      clip-path: circle(150vmax at var(--wipe-x, 2.5rem) var(--wipe-y, 6rem));
+      transform: translateX(100%) rotateY(90deg);
+      filter: brightness(0.55);
     }
   }
 
-  @keyframes wipe-lift {
+  @keyframes turn-out-prev {
     to {
-      opacity: 0;
+      transform: translateX(100%) rotateY(90deg);
+      filter: brightness(0.55);
     }
   }
 
-  .wipe {
-    animation:
-      wipe-open 420ms var(--ease) both,
-      wipe-lift 220ms var(--ease) 420ms forwards;
+  @keyframes turn-in-prev {
+    from {
+      transform: translateX(-100%) rotateY(-90deg);
+      filter: brightness(0.55);
+    }
   }
 
   /*
@@ -477,18 +515,14 @@
 @media (prefers-reduced-motion: reduce) {
   .tint,
   .pop-in,
+  .ring-in,
   .arrive,
   .press:active,
   .typing-dot,
   .settle > *,
-  .wipe,
   .story-progress {
     transition: none;
     animation: none;
-  }
-
-  .wipe {
-    display: none;
   }
 
   .settle > * {
@@ -499,5 +533,57 @@
   [data-ending-style] {
     scale: none !important;
     transform: none !important;
+  }
+}
+
+/* The story turn's faces: see the turn keyframes above. */
+html[data-turn] .tint {
+  transition: none !important;
+}
+
+::view-transition {
+  background-color: var(--rail-bg);
+}
+
+::view-transition-image-pair(root) {
+  perspective: 2000px;
+}
+
+html[data-turn]::view-transition-old(root),
+html[data-turn]::view-transition-new(root) {
+  /* A cube turns like a solid thing: easing in and out, not flicked (the house expo ease-out would
+     do nine tenths of the turn in its first 200ms). */
+  animation-duration: 680ms;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  animation-fill-mode: both;
+  mix-blend-mode: normal;
+  backface-visibility: hidden;
+}
+
+html[data-turn="next"]::view-transition-old(root) {
+  transform-origin: 100% 50%;
+  animation-name: turn-out-next;
+}
+
+html[data-turn="next"]::view-transition-new(root) {
+  transform-origin: 0% 50%;
+  animation-name: turn-in-next;
+}
+
+html[data-turn="prev"]::view-transition-old(root) {
+  transform-origin: 0% 50%;
+  animation-name: turn-out-prev;
+}
+
+html[data-turn="prev"]::view-transition-new(root) {
+  transform-origin: 100% 50%;
+  animation-name: turn-in-prev;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

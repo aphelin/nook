@@ -40,13 +40,14 @@ test('sign up, stay signed in across reloads, sign out, sign back in', async ({ 
   await page.goto('/app');
   await expect(page).toHaveURL(/\/login\?next=%2Fapp$/);
 
+  // The router can keep the earlier sign-in page mounted but hidden; fill the form a person can see.
   // Wrong password shows a clear error; the right one gets back in and honours ?next.
-  await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password', { exact: true }).fill('not my password');
+  await page.getByLabel('Email').filter({ visible: true }).fill(user.email);
+  await page.getByLabel('Password', { exact: true }).filter({ visible: true }).fill('not my password');
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'match' })).toHaveText('That email and password don’t match.');
 
-  await page.getByLabel('Password', { exact: true }).fill(user.password);
+  await page.getByLabel('Password', { exact: true }).filter({ visible: true }).fill(user.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/\/app$/);
   await expect(home).toContainText(`Welcome, Mara`);

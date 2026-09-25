@@ -90,6 +90,33 @@ describe('profiles', () => {
   });
 });
 
+describe('faces', () => {
+  it('lets you choose a face, tells your nooks, and goes back to the generated one', async () => {
+    // Nobody has chosen one yet: the web app draws the face the handle gives.
+    expect((await me(alice)).face).toBeNull();
+    const told = nextEvent<PublicUser>(bobSocket, 'user:updated', (u) => u.id === alice.id && u.face?.shape === 'burst');
+    const chosen = PublicUser.parse((await patch(alice, { face: { shape: 'burst', tone: 2 } }).expect(200)).body);
+    expect(chosen.face).toEqual({ shape: 'burst', tone: 2 });
+    expect((await me(alice)).face).toEqual({ shape: 'burst', tone: 2 });
+    expect(PublicUser.parse(await told).face).toEqual({ shape: 'burst', tone: 2 });
+    // Other edits leave the face alone; null goes back to the generated one.
+    expect((await patch(alice, { bio: 'Still a burst' }).expect(200)).body.face).toEqual({ shape: 'burst', tone: 2 });
+    expect((await patch(alice, { face: null }).expect(200)).body.face).toBeNull();
+    expect((await me(alice)).face).toBeNull();
+  });
+
+  it('refuses a face that does not exist', async () => {
+    await patch(alice, { face: { shape: 'crown', tone: 1 } }).expect(200);
+    await patch(alice, { face: { shape: 'triangle', tone: 1 } }).expect(400);
+    await patch(alice, { face: { shape: 'star', tone: 4 } }).expect(400);
+    await patch(alice, { face: { shape: 'star', tone: 0 } }).expect(400);
+    await patch(alice, { face: { shape: 'star' } }).expect(400);
+    await patch(alice, { face: 'star' }).expect(400);
+    expect((await me(alice)).face).toEqual({ shape: 'crown', tone: 1 });
+    await patch(alice, { face: null }).expect(200);
+  });
+});
+
 describe('avatars', () => {
   it('refuses the wrong type or size before anything is uploaded', async () => {
     await http.post('/api/users/me/avatar').set(alice.auth).send({ mimeType: 'image/svg+xml', size: 100 }).expect(400);

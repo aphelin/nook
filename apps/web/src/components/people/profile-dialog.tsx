@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { AVATAR_TYPES, PRONOUNS, type Pronouns, type PublicUser } from "@nook/contracts";
+import { AVATAR_TYPES, type Face, PRONOUNS, type Pronouns, type PublicUser } from "@nook/contracts";
 import { Smiley, Trash, UploadSimple, X } from "@phosphor-icons/react/dist/ssr";
 import { createContext, type ReactNode, useContext, useId, useMemo, useRef, useState } from "react";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
@@ -9,8 +9,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { ApiRequestError } from "@/lib/api";
+import { generatedFace } from "@/lib/faces";
 import { liveStatus, useAvatar, useUpdateProfile } from "@/lib/profile";
 import { useSession } from "@/lib/session";
+import { FacePicker, FacePreview } from "./face-picker";
 import { PersonCard, untilLabel } from "./person-card";
 
 interface ProfileEditor {
@@ -89,6 +91,9 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
   const [statusText, setStatusText] = useState(current?.text ?? "");
   // An existing expiry is kept unless you pick another option.
   const [clearAfter, setClearAfter] = useState<ClearAfter | "keep">(current?.expiresAt ? "keep" : "never");
+  // The face you chose, or the one your handle gives you until you choose.
+  const [face, setFace] = useState<Face>(me.face ?? generatedFace(me.handle));
+  const [customFace, setCustomFace] = useState(me.face !== null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const update = useUpdateProfile();
@@ -104,6 +109,7 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
     pronouns,
     bio: bio.trim() || null,
     status: { emoji, text: statusText.trim() || null, expiresAt },
+    face: customFace ? face : null,
   };
   const bioOver = bio.length > BIO_MAX;
 
@@ -121,6 +127,7 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
         pronouns,
         bio,
         status: hasStatus ? { emoji, text: statusText, expiresAt } : null,
+        face: customFace ? face : null,
       });
       onDone();
     } catch (err) {
@@ -130,6 +137,7 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
 
   const uploading = avatar.state.status === "uploading";
   const shownAvatar = uploading && avatar.state.status === "uploading" ? { ...draft, avatarUrl: avatar.state.preview } : draft;
+  const initial = (draft.displayName.trim()[0] ?? me.handle[0] ?? "?").toUpperCase();
 
   return (
     <form onSubmit={save} noValidate className="flex min-h-0 flex-1 flex-col">
@@ -148,7 +156,7 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
           {/* Avatar */}
           <div className="flex items-center gap-4">
             <span className="relative">
-              <Avatar user={shownAvatar} size={72} />
+              {shownAvatar.avatarUrl ? <Avatar user={shownAvatar} size={88} /> : <FacePreview face={face} initial={initial} size={88} />}
               {uploading && (
                 <span
                   role="progressbar"
@@ -176,7 +184,7 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-fg-2">{uploading ? "Uploading…" : "Replaces your generated shape. Square-cropped, up to 5 MB."}</p>
+              <p className="text-xs text-fg-2">{uploading ? "Uploading…" : "Fills your shape. Square-cropped, up to 5 MB."}</p>
               <input
                 ref={fileInput}
                 type="file"
@@ -197,6 +205,21 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
               {avatar.state.message}
             </p>
           )}
+
+          <FacePicker
+            face={face}
+            initial={initial}
+            custom={customFace}
+            hasPhoto={!!shownAvatar.avatarUrl}
+            onPick={(next) => {
+              setFace(next);
+              setCustomFace(true);
+            }}
+            onReset={() => {
+              setFace(generatedFace(me.handle));
+              setCustomFace(false);
+            }}
+          />
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor={ids.name} className={labelClass}>

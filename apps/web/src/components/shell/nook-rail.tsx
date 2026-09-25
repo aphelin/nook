@@ -6,6 +6,7 @@ import { Check, PencilSimple, Plus, SignOut } from "@phosphor-icons/react/dist/s
 import { Mark } from "@/components/brand/mark";
 import { NookDisc } from "@/components/brand/nook-disc";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { StatusLine } from "@/components/people/person-card";
 import { useProfileEditor } from "@/components/people/profile-dialog";
 import { Avatar } from "@/components/ui/avatar";
@@ -16,7 +17,7 @@ import { useRealtime } from "@/lib/realtime";
 import { useSession } from "@/lib/session";
 import { countLabel, useUnread } from "@/lib/unread";
 import { Inbox } from "./inbox";
-import { originOf, wipeTo } from "./wipe";
+import { directionOf, shownNook, turn } from "./story-turn";
 
 const STATUSES: { value: ManualStatus; label: string; hint: string }[] = [
   { value: "online", label: "Automatic", hint: "Online while you’re here" },
@@ -39,6 +40,7 @@ export const menuItem =
  */
 export function NookRail({ activeSlug }: { activeSlug: string | null }) {
   const nooks = useNooks();
+  const router = useRouter();
   const { state, signOut } = useSession();
   const { socket } = useRealtime();
   const status = useManualStatus();
@@ -79,19 +81,26 @@ export function NookRail({ activeSlug }: { activeSlug: string | null }) {
                 data-unread={any || undefined}
                 onClick={(e) => {
                   if (active || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                  const { x, y } = originOf(e);
-                  wipeTo(nook.kit, x, y);
+                  // The link still works without a script; with one, the move is a story turn.
+                  e.preventDefault();
+                  const from = nooks.data?.findIndex((n) => n.slug === activeSlug) ?? 0;
+                  const to = nooks.data?.findIndex((n) => n.slug === nook.slug) ?? 0;
+                  void turn(directionOf(from, to), async () => {
+                    router.push(`/app/${nook.slug}`);
+                    await shownNook(nook.slug);
+                  });
                 }}
                 className="group mx-auto flex w-fit items-center justify-center rounded-full"
               >
                 <span
-                  className={`relative grid place-items-center rounded-full transition-[scale] duration-200 ease-out-expo group-hover:scale-105 group-active:scale-95 ${
-                    active ? "p-[3px] ring-[2.5px] ring-fg ring-inset" : "p-[5.5px]"
+                  className={`relative grid place-items-center rounded-full p-[5.5px] transition-[scale] duration-200 ease-out-expo group-hover:scale-105 group-active:scale-95 ${
+                    active ? "ring-[2.5px] ring-fg ring-inset" : ""
                   }`}
                 >
                   <NookDisc kit={nook.kit} initial={nook.name[0]} size={44} />
                   {any && !active && (
                     <span
+                      key={forYou}
                       aria-hidden="true"
                       data-num
                       className="pop-in absolute -top-0.5 -right-0.5 inline-flex items-center justify-center rounded-full bg-pop text-2xs leading-none font-extrabold text-on-pop ring-[3px] ring-rail"

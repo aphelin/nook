@@ -12,7 +12,7 @@ import { SHAPES } from "@/lib/faces";
 export const MARK_W = 44;
 export const MARK_H = 24;
 
-const FLOWER = SHAPES[1];
+const FLOWER = SHAPES.flower;
 
 interface MarkProps {
   /** The mark's width in px; its height follows the 44×24 box. */

@@ -34,6 +34,12 @@ colors:
   card-on-hi: "light-dark(#ffffff, #091825)"
   card-chip: "light-dark(#fdeddd, #302a23)"
   card-ring: "light-dark(#1c476e, #f28c28)"
+  card-face-1: "light-dark(#f28c28, #f28c28)"
+  card-on-face-1: "light-dark(#091825, #091825)"
+  card-face-2: "light-dark(#1c476e, #ff8ac2)"
+  card-on-face-2: "light-dark(#ffffff, #091825)"
+  card-face-3: "light-dark(#ff8ac2, #f6f3f3)"
+  card-on-face-3: "light-dark(#091825, #0b1722)"
   pop: "light-dark(#ff8ac2, #ff8ac2)"
   on-pop: "light-dark(#091825, #091825)"
   club-bright: "light-dark(#f28c28, #f28c28)"
@@ -255,9 +261,9 @@ Depth is colour against colour. There are no gradient fills, no glass, no grain 
 - Four surfaces per club (wing, rail, stage, card), all computed from the kit's two colours plus one derived pop; the frontmatter values are the house kit's (navy `#1f4e79` and orange `#f28c28`), worn wherever no nook is in scope.
 - One shared vocabulary on every surface (`bg`, `fg`, `fg-2`, `hi`, `on-hi`, `chip`, `on-chip`, `ring`, `face-1..3`, `on-face-1..3`), so a pill, a count or a person reads on whatever it is placed on.
 - Funnel Display 800 at poster size names things; Funnel Sans carries everything read or pressed.
-- People are eight flat shapes with a heavy initial, chosen by handle; a club is a split disc of its two colours.
+- People are twenty-one flat shapes with a heavy initial: the one a member picked in their profile (shape and one of three face colours), or one of the first eight given by their handle until they do; a club is a split disc of its two colours.
 - Pills for what you press, 28px corners for what holds content.
-- Motion: an overshoot for arrivals only, expo ease-out for everything else, a 360ms re-tint, and a circular wipe between clubs; all cut under reduced motion.
+- Motion: an overshoot for arrivals only, expo ease-out for everything else, a 360ms re-tint, and a story turn between clubs (the screen turns to the new club like the next face of a cube). On the landing, a crowd of people lands in the first screen, can be knocked flying with the cursor, and six of them fly down into the next chapter as you scroll. All of it is cut under reduced motion.
 
 ## Colors
 
@@ -329,7 +335,7 @@ The desktop shell is three columns meeting edge to edge: a 76px rail, a 280px wi
 
 The room header pads 32px at `md` and up (16px on phones), 32px from the top. Messages sit on one left edge in a 2.75rem gutter column, with a 12px gap to the text, so a long channel scans; consecutive messages share one shape and name. The composer docks at the bottom, 24px from the sides and 20px from the foot at `md`.
 
-Spacing follows a 4px base. The recurring steps are 6px (label-to-field, reaction gaps), 12px (row gaps, drawer insets), 20px (popover padding, wing padding), 28px (dialog padding) and 32px (room gutters). The landing is a 90rem max-width stage split 5:7 at `xl`, chapters alternating side.
+Spacing follows a 4px base. The recurring steps are 6px (label-to-field, reaction gaps), 12px (row gaps, drawer insets), 20px (popover padding, wing padding), 28px (dialog padding) and 32px (room gutters). The landing is a 90rem max-width stage split 5:7 at `xl`, chapters alternating side. From `xl` the club discs stand at the end of the headline's second line (the name they change), and the live demo runs down to 4.25rem above the hero's foot, sized from the viewport so it keeps a healthy shape (about 1.2–1.7:1), floating over the crowd's trail; the mound rises into the corner under the call to action. Between `md` and `xl` the stacked demo keeps a 1.6:1 shape. A chosen club disc keeps the padding of the others and wears its ring inside it, so it sits centred and nothing shifts when you change clubs.
 
 ## Elevation & Depth
 
@@ -344,14 +350,14 @@ Modal layers dim the room with black at 50–55%.
 ### Named Rules
 **The Colour Against Colour Rule.** Docked surfaces separate by colour alone. A shadow says "this is lifted off the colour"; a surface that is part of the floor never gets one.
 
-**The Flat Fill Rule.** Surfaces are single flat colours: no gradient fills, no glass or backdrop blur, no grain, no glow. The one gradient in the shell is a mask that fades the transcript's top edge under the header.
+**The Flat Fill Rule.** Surfaces are single flat colours: no gradient fills, no glass or backdrop blur, no grain, no glow. The one gradient is a mask that fades a transcript's top edge under its header: the room's, and the landing demo's, which always fills with talk and lets its oldest line run up under the head.
 
 ## Shapes
 
 Big and round. What you press is a full pill (buttons, channel rows, reactions, the search field, the composer's send, menu items, counts). What holds content has 28px corners (popovers, dialogs, drawers' inner edge, the composer, landing cards). Between them: 16px for fields, mention cards, attachments and form alerts; 20px for hover plates under message, member and inbox rows; 24px for menus; 10px for small focusable text and the wordmark.
 
 Two custom silhouettes carry identity:
-- **People** are eight flat shapes in a 40×40 box (circle, flower, scallop, squircle, arch, clover, sparkle, pebble), each keeping at least the middle 60% solid so an initial fits. `faceFor(handle)` picks the shape and one of the surface's three face colours by FNV-1a hash, so the same person is the same shape everywhere. Uploaded photos are masked to the person's shape.
+- **People** are twenty-one flat shapes in a 40×40 box: the eight given by handle (circle, flower, scallop, squircle, arch, clover, sparkle, pebble) and thirteen more a member can pick (star, burst, hexagon, pick, trefoil, wave, leaf, drop, bowl, blob, diamond, capsule, crown). Each keeps a solid centred disc of 60% of the box so an initial fits, the new ones stay inside the box, and no new shape overlaps any other by more than 0.92 when rasterised (`scripts/verify-faces.mjs` measures all three). A member's chosen face is stored by name with one of the surface's three face colours (`faceShape`, `faceTone`); until they choose, `generatedFace(handle)` picks one of the first eight and a colour by FNV-1a hash, exactly as before, so the same person is the same shape everywhere and nobody's shape changed when the catalogue grew. Uploaded photos are masked to the person's shape.
 - **A club** is a split disc: the bright colour above, the deep colour as a lower band (from y 29 of 40 with an initial, y 24 without), the initial set heavy in the deep colour on the bright part. The same object from 16px to 104px; below 22px there is no initial. On its own room it is drawn `inverse`, in the surface's highlight.
 
 The **mark** is two of the people shapes, a circle and a flower, overlapping by 4 in a 44×24 box, the flower cut out with a stroke in the surface's own colour. The wordmark sets "N", the mark, "k" in Funnel Display 800 on the type ramp (1.375rem in top bars, 1.875rem on the landing), the mark standing in for the two o's.
@@ -360,6 +366,8 @@ The **mark** is two of the people shapes, a circle and a flower, overlapping by 
 **The Pill And Card Rule.** Pressable things are pills; containers are 28px cards. A new component picks one of the two before any other radius.
 
 **The Solid People Rule.** People are always filled shapes. Presence is drawn around or beside a person, never by fading, outlining or greying the person.
+
+**The Chosen By Name Rule.** A face is stored as a shape's name and a colour slot, never a path or a hex. The first eight names stay in their order forever (the handle hash picks from them); new shapes are only ever added after them, and the api refuses a name it does not know.
 
 ## Components
 
@@ -392,7 +400,7 @@ Pills of solid colour that squash when pressed.
 
 ### Navigation
 - **Rail:** 44px nook discs, 12px apart; the current one sits in a 2.5px ring in `fg`; hover grows discs to 105%, press shrinks to 95%. The "new nook" disc is an uncoloured chip with a plus that fills with the highlight on hover. The inbox and your own shape sit at the foot.
-- **Wing:** the nook's name (Nook Name), member count, a 44px search pill with its shortcut, an Invite pill, then 44px channel rows in quiet `fg-2`, medium. Unread lifts a row to `fg` bold with a pop count; the current row is a solid pill of the highlight with `on-hi` text, a swatch of where you are. DM rows show the person's shape with a presence mark.
+- **Wing:** the nook's name (Nook Name), then one quiet line with the member count and a small Invite chip (32px, pop-coloured glyph) at its end, then the 44px search pill with its shortcut, then 44px channel rows in quiet `fg-2`, medium. Name first, search second, invite as an aside: the search pill is the only full-width control above the channels. Unread lifts a row to `fg` bold with a pop count; the current row is a solid pill of the highlight with `on-hi` text, a swatch of where you are, and that pill slides from row to row when you move (see Motion). DM rows show the person's shape with a presence mark.
 - **Mobile:** a menu button beside the room title opens the rail and wing as one drawer.
 
 ### Presence
@@ -404,18 +412,33 @@ Talk is set straight on the room's colour with no bubble: the author's shape (40
 ### Channel Start
 The top of an empty or fully scrolled channel shows up to six of the channel's people as filled shapes at 84px in a wrapped row (0.5rem gap), each popping in 60ms after the last, above "The start of #channel" in Title at the title colour, a line of description and a tabular member count. A channel with one person falls back to the club's inverse disc at 72px. A DM starts with the other person's 88px shape and name.
 
-### Signature: The Wipe
-Changing nooks, the new club's stage colour grows as a circle from the disc you pressed to 150vmax over 420ms, then lifts away over 220ms onto a room that has re-tinted beneath it (every `tint` element transitions colours over 360ms). The landing's club picker does the same around its live demo, which always renders in day colours.
+### Signature: The Story Turn
+Changing nooks turns the screen like the faces of a cube, the way stories move from one account to the next (`story-turn.ts`, View Transitions). The browser snapshots the room being left, the new club is drawn, and the two snapshots turn together about their shared edge over 680ms on an ease-in-out (`cubic-bezier(0.7, 0, 0.2, 1)`: a solid thing turning, not a flick): picking a nook further down the rail turns forward, the old face swinging away to the left as the new one swings in from the right; back up turns the other way. The faces darken to 55% as they turn edge-on, over the new club's rail colour. Both faces are real screens, never a colour laid over one, and the re-tint is switched off while the turn runs (`html[data-turn] .tint`), so the incoming face arrives in its own colours. The turn waits for the shell to announce the new nook (`nook:shown`, at most 900ms). The rail, the Ctrl+K palette and the landing's club discs all turn; the landing's automatic advance just re-tints. Without View Transitions, or under reduced motion, the change is a plain cut.
 
 ### Story Bar
 Above the landing's live demo, one 6px pill segment per demo club (6px apart), like the progress marks across the top of a story: a track in the surface's 14% wash with a fill in `fg`. Clubs already shown are full; the current one fills left to right over its script length × 2600ms + 5000ms, linearly, pausing when the demo is paused; a club the visitor picked is full at once. Under reduced motion the fill does not animate.
 
+### Face Picker
+In Edit profile, under the photo row: an 88px preview of you, then **Shape**, a radio grid of all twenty-one silhouettes (46px cells, drawn in the card's highlight so every one reads in both schemes; the chosen cell sits on the chip with a 2.5px ring in `fg`), and **Colour**, three 56px cells showing your shape and initial in each of the surface's face colours ("Each nook paints these from its own two colours"). Picking a shape morphs the preview from the old outline to the new one; with a photo, the colour row goes and the grid notes that the photo is cut to the shape. "Use the one I was given" goes back to the generated face. The preview card beside the form follows every pick before anything is saved.
+
+### The Crowd (landing)
+The first screen ends in a pile of people along its foot: the demo clubs' members and made-up others in all twenty-one shapes, in the club's face colours, re-tinting with it. The pile is laid out ahead of time from a seed (`crowd-layout.ts`: dropped one by one, resting on the floor on their whole box or on someone's shoulders as circles), in three layouts: from `xl` a mound heaped under the call to action (up to 300 units) with the six named people standing in front of it, left of the demo, and a trail of small people (under 52 units) along the floor beneath the demo, which floats over that half of the band; a 170-unit strip from `md`; a small one on phones. Only people at least 72% the size of the named six carry an initial, so it reads as a crowd, not an alphabet. The hero is clipped at its foot; the pile stands on that edge. From `xl` the crowd stands in front of the page's content (the layout keeps them clear of it at rest), so people can be tapped and thrown across it.
+
+Every demo person wears a face of their own (the landing's data and the seeded app members share them: Mara sparkle, Jonas drop, Priya circle, Theo flower, Aiko star, Sam arch, Lena pebble, Dev leaf), so no two people in the demo look alike.
+
 ### Motion
-- **Expo ease-out** (`cubic-bezier(0.16, 1, 0.3, 1)`): hover, state, popups (200ms, from 90% scale), drawers (300ms), the re-tint, the wipe.
-- **Pop ease** (`cubic-bezier(0.3, 1.4, 0.55, 1)`): arrivals only. People, counts and badges pop in from 40% scale over 380ms; a sent message arrives from 12px below at 96% scale over 320ms.
-- **Linear:** only the story bar's progress fill, which is time, not motion.
+- **Expo ease-out** (`cubic-bezier(0.16, 1, 0.3, 1)`, `--ease`; GSAP `"nook"`): hover, state, popups (200ms, from 90% scale), drawers (300ms), the re-tint, anything travelling.
+- **Turn ease** (`cubic-bezier(0.7, 0, 0.2, 1)`): the story turn only, a cube turning in and out rather than flicked.
+- **Pop ease** (`cubic-bezier(0.3, 1.4, 0.55, 1)`, `--ease-pop`; GSAP `"nook-pop"`): arrivals only. People, counts and badges pop in from 40% scale over 380ms; a sent message arrives from 12px below at 96% scale over 320ms; a count that changes lands again (keyed on its number).
+- **Linear:** only the story bar's progress fill (time, not motion) and the landing flight's scrub (scroll, not time).
 - **Loops:** only the typing dots (1.2s).
-- **Reduced motion:** every transition and animation above is cut, the wipe is not drawn, popups lose their scale, and the settle flash holds as a static 10% wash.
+- **The runtime:** CSS keyframes for declared arrivals; the Web Animations API for one-shot pops on elements that already transition (reading the curve from its token, one keyframe so it lands on the resting value); GSAP (`lib/motion`, with `useGSAP` and `matchMedia`) for sequences, scroll, morphing and the crowd.
+- **In the app:** the current-channel pill slides to the row you picked (420ms, expo) and re-tints on its fill alone; your own reaction pops its chip and a face joining a chip on screen slaps down beside the others (nothing pops for chips already there when the message appeared); the send arrow leaves through the top of its disc and a fresh one rises in (440ms); someone arriving in the who's-here strip grows their ring out from them (460ms, pop); picking a shape morphs the profile preview to it (500ms, expo, with a small 94%→100% squash): every shape is measured once as its radius at 120 angles round its centre, so the morph blends two lists of numbers each frame, with nothing to match up and nothing to twist.
+- **On the landing:** the crowd jumps up into the room from below its floor in a loose wave (a jump, a fall, a squash on landing, a pop back), and can be played with: each person is a small body with a velocity and a spin (`crowd-physics.ts`); the cursor is a moving collider tested along its whole path, so a slow pass nudges people aside and a fast swipe kicks them into the air, tumbling, knocking into whoever they fly into (momentum handed on, never made); gravity brings them down with a bounce and a squash on landing, a spring walks them home and they right themselves to the nearest whole turn. A tap throws someone up to turn over. The crowd also hops when the page changes clubs (nearest the disc you pressed first). The club's name in the headline lands letter by letter (SplitText, 24ms apart). As the who's-here chapter comes up, its six people leave the pile and fly down into their seats, scrubbed to scroll, swaying up to 16° but never turning over, and passing behind the chapter's words rather than across them: the pile and the row are each clipped to their own section, so a person changes colour exactly as they cross the edge between rooms, and on landing whoever is here draws their ring on and the names come up under them. Each later chapter plays its piece once as it comes on screen, the way the app would: a message lands and its reactions pop on, thread replies arrive one after another, the file drops in and the link unfolds, the search types itself and its hits light up. No heading or paragraph moves.
+- **Reduced motion:** every transition and animation above is cut, the story turn is a plain cut, popups lose their scale, and the settle flash holds as a static 10% wash. The crowd stands still where it rests, a swipe or a tap moves nobody, nobody flies, the headline swaps without letters landing, every chapter piece is simply there, the pill and the preview land at once, and the ring appears without growing.
+
+### Named Rules
+**The Tint Owns Its Element Rule.** `tint` transitions transform and opacity as well as colour, so a script never moves or fades an element that carries it: it animates a wrapper, or a Web Animation on a property the element is not transitioning. A GSAP tween on a tinted element reads the half-finished transition as its end state and lands wrong.
 
 ## Do's and Don'ts
 
@@ -426,9 +449,10 @@ Above the landing's live demo, one 6px pill segment per demo club (6px apart), l
 - **Do** lift what is about the reader (mentions, failed sends, field errors) onto a card; leave everything else on the colour.
 - **Do** set poster-size heads on the room in the title colour (ink by day, the club's bright colour by night), and nothing smaller.
 - **Do** make pressable things full pills and containers 28px cards.
-- **Do** draw people as their shape from `faceFor(handle)` and a club as its split disc, at every size.
+- **Do** draw people through `Avatar` (their chosen face, or `generatedFace(handle)` until they choose) and a club as its split disc, at every size.
 - **Do** tell presence apart by shape (disc, half disc, bar, open ring) before colour.
-- **Do** keep the overshoot ease for arrivals and use the expo ease-out for hover and state.
+- **Do** keep the overshoot ease for arrivals and use the expo ease-out for hover and state, and take both from their tokens (`--ease`, `--ease-pop`, GSAP `"nook"`, `"nook-pop"`) rather than restating the curve.
+- **Do** give every scripted motion a reduced-motion path that lands at once, and leave content visible if the script never runs.
 
 ### Don't:
 - **Don't** hard-code a club's hex, or pick a kit colour's role by its position in the kit.
@@ -439,3 +463,5 @@ Above the landing's live demo, one 6px pill segment per demo club (6px apart), l
 - **Don't** fade or grey a person to show they are away or offline.
 - **Don't** set messages, labels, controls or counts in Funnel Display.
 - **Don't** use the overshoot ease on hover or state changes, or loop anything but the typing dots.
+- **Don't** move or fade a `tint` element from a script; move its wrapper.
+- **Don't** reorder or rename the first eight shapes, or store a face as anything but its name and colour slot.

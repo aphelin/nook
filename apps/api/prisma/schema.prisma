@@ -25,6 +25,10 @@ model User {
   statusText      String?
   /// A custom status clears itself after this moment (null: until changed).
   statusExpiresAt DateTime?
+  /// A face the member picked, by name (contracts FACE_SHAPES) and which of the surface's three face
+  /// colours it takes. Both null: the one their handle gives them.
+  faceShape       String?
+  faceTone        Int?      @db.SmallInt
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

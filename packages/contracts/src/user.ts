@@ -31,6 +31,44 @@ export const PRONOUNS = ['he/him', 'she/her'] as const;
 export const Pronouns = z.enum(PRONOUNS, { error: 'Choose he/him or she/her' });
 export type Pronouns = z.infer<typeof Pronouns>;
 
+/**
+ * The shapes a person can be, by name. The first eight are the ones a handle is given until its
+ * owner picks one; the order of those eight must never change. Names, not positions, are stored.
+ */
+export const FACE_SHAPES = [
+  'circle',
+  'flower',
+  'scallop',
+  'squircle',
+  'arch',
+  'clover',
+  'sparkle',
+  'pebble',
+  'star',
+  'burst',
+  'hex',
+  'pick',
+  'trefoil',
+  'wave',
+  'leaf',
+  'drop',
+  'bowl',
+  'blob',
+  'diamond',
+  'capsule',
+  'crown',
+] as const;
+export const FaceShape = z.enum(FACE_SHAPES, { error: 'Pick one of the shapes' });
+export type FaceShape = z.infer<typeof FaceShape>;
+
+/** Which of the surface's three face colours a person wears; each surface computes its own three. */
+export const FaceTone = z.union([z.literal(1), z.literal(2), z.literal(3)], { error: 'Pick one of the three colours' });
+export type FaceTone = z.infer<typeof FaceTone>;
+
+/** A face someone chose. `null` on a profile means "the one my handle gives me". */
+export const Face = z.object({ shape: FaceShape, tone: FaceTone });
+export type Face = z.infer<typeof Face>;
+
 export const PublicUser = z.object({
   id: Id,
   handle: Handle,
@@ -40,6 +78,7 @@ export const PublicUser = z.object({
   pronouns: Pronouns.nullable(),
   bio: z.string().max(280).nullable(),
   status: UserStatus,
+  face: Face.nullable(),
 });
 export type PublicUser = z.infer<typeof PublicUser>;
 
@@ -65,6 +104,7 @@ export const UpdateProfile = z
         expiresAt: IsoDate.nullable().default(null),
       })
       .nullable(),
+    face: Face.nullable(),
   })
   .partial();
 export type UpdateProfile = z.input<typeof UpdateProfile>;

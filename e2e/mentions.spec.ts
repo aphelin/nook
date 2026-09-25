@@ -56,7 +56,8 @@ test('a mention picked from the autocomplete reaches the teammate: the channel s
   await expect(plansLink).toHaveAccessibleName(/1 unread, 1 mention/);
   // The same row, now unread: heavier, and lifted from secondary text to full ink.
   await expect.poll(async () => (await style()).weight).toBeGreaterThan(read.weight);
-  expect((await style()).color).not.toBe(read.color);
+  // Colour re-tints over 360ms (the row carries `tint`) while weight changes at once: wait for it.
+  await expect.poll(async () => (await style()).color).not.toBe(read.color);
   const inboxButton = ben.getByRole('button', { name: 'Inbox, 1 unread' });
   await expect(inboxButton).toBeVisible();
 

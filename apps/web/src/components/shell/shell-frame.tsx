@@ -9,6 +9,7 @@ import { ThreadPanel } from "@/components/chat/thread-panel";
 import { CommandPalette } from "@/components/search/command-palette";
 import { SearchPanel } from "@/components/search/search-panel";
 import { accentStyle } from "@/lib/accent";
+import { NOOK_SHOWN } from "./story-turn";
 import { ChannelSheet } from "./channel-sheet";
 import { NookRail } from "./nook-rail";
 import { MemberSheet } from "./member-sheet";
@@ -61,8 +62,8 @@ interface ShellFrameProps {
  * the rail and the wing in its deep colour, the room drenched in its bright one (its deep one by
  * night). Who's here lives across the top of the room rather than in a fourth column, so people
  * come first and the conversation gets the width; the full member list, a thread or search results
- * open as a card over the colour. Switching nooks swaps the kit on the document root and the new
- * colour wipes across from the disc you pressed.
+ * open as a card over the colour. Switching nooks swaps the kit on the document root, and the
+ * screen turns to the new club like the next face of a cube (story-turn).
  */
 export function ShellFrame({ detail, activeChannelId, meId, children }: ShellFrameProps) {
   const [navOpen, setNavOpen] = useState(false);
@@ -132,6 +133,10 @@ export function ShellFrame({ detail, activeChannelId, meId, children }: ShellFra
       for (const [name] of vars) root.style.removeProperty(name);
     };
   }, [kit]);
+  // A story turn waits for this: the new nook is on screen, in its colours.
+  useLayoutEffect(() => {
+    window.dispatchEvent(new CustomEvent(NOOK_SHOWN, { detail: slug }));
+  }, [slug]);
 
   return (
     <ShellContext value={controls}>

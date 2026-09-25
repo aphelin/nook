@@ -34,7 +34,7 @@ function DemoMessage({ line, club, index, fresh }: { line: DemoLine; club: DemoC
     return p ? { id: p.id, name: p.displayName, isMe: p.handle === VIEWER } : null;
   };
   return (
-    <li className={`grid w-full grid-cols-[2.25rem_minmax(0,1fr)] gap-x-2.5 px-3.5 pt-3 ${fresh ? "motion-safe:arrive" : ""}`}>
+    <li className={`grid w-full shrink-0 grid-cols-[2.25rem_minmax(0,1fr)] gap-x-2.5 px-3.5 pt-3 ${fresh ? "motion-safe:arrive" : ""}`}>
       <Avatar user={author} size={36} />
       <div className="flex min-w-0 flex-col items-start">
         <p className="flex items-baseline gap-1.5 text-sm">
@@ -184,12 +184,13 @@ export function LiveNook({ club, playing, onFinished }: LiveNookProps) {
           </ul>
         </div>
         {/*
-          Newest at the bottom, stacked upwards. A message that doesn't fully fit wraps into a second
-          column that overflow hides, so only whole messages ever show, at any size of the sheet.
+          Newest at the bottom, stacked upwards, the way the room itself is: the talk always fills the
+          space between the head and the composer, and the oldest line runs up under the head,
+          faded out over its top 1.25rem by the same mask the app's transcript uses.
         */}
         <ol
           aria-label={`Messages in #${club.channel}`}
-          className="flex min-h-0 flex-1 flex-col-reverse flex-wrap content-start overflow-hidden pb-2"
+          className="flex min-h-0 flex-1 flex-col-reverse overflow-hidden pb-2 [mask-image:linear-gradient(to_bottom,transparent,black_1.25rem)]"
         >
           {lines
             .map((line, i) => <DemoMessage key={`${club.id}-${i}`} line={line} club={club} index={i} fresh={i >= club.opening.length} />)

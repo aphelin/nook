@@ -104,12 +104,13 @@ export function InvitePopover({ slug, nookName }: { slug: string; nookName: stri
       trigger={
         <button
           type="button"
-          className="tint flex h-11 w-full items-center justify-center gap-2 rounded-full bg-chip text-base font-bold text-on-chip hover:bg-hover-strong [&>svg]:text-pop"
+          aria-label="Invite people"
+          className="tint press inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-chip px-3 text-sm font-bold text-on-chip hover:bg-hover-strong [&>svg]:text-pop"
         />
       }
       triggerContent={
         <>
-          <UserPlus size={18} weight="bold" aria-hidden="true" /> Invite people
+          <UserPlus size={15} weight="bold" aria-hidden="true" /> Invite
         </>
       }
     >

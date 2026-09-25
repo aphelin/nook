@@ -3,11 +3,12 @@
 import type { Channel, ChannelUnread, NookDetail } from "@nook/contracts";
 import { Hash, LockSimple, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { type ReactNode, useSyncExternalStore } from "react";
+import { type ReactNode, useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import { StatusEmoji } from "@/components/people/person-card";
 import { usePalette } from "@/components/search/command-palette";
 import { Avatar } from "@/components/ui/avatar";
 import { usePrefetchChannel } from "@/lib/messages";
+import { gsap, reducedMotion } from "@/lib/motion";
 import { usePresence } from "@/lib/presence";
 import { countLabel, useChannelUnreads } from "@/lib/unread";
 import { InvitePopover } from "./invite-popover";
@@ -27,7 +28,49 @@ interface ChannelSheetProps {
  * pill of the room's own colour — a swatch of where you are.
  */
 const rowClass =
-  "tint group flex h-11 items-center gap-2.5 rounded-full px-3.5 text-base hover:bg-hover aria-[current=page]:bg-hi aria-[current=page]:text-on-hi";
+  "tint group relative flex h-11 items-center gap-2.5 rounded-full px-3.5 text-base hover:bg-hover aria-[current=page]:bg-hi aria-[current=page]:text-on-hi [[data-sliding]_&]:aria-[current=page]:bg-transparent";
+
+/**
+ * The pill of where you are slides from the row you left to the row you picked, so moving between
+ * channels reads as moving, not as one light going off and another coming on. The server draws the
+ * pill on the row itself; once this has measured, the list is marked `data-sliding`, the row lets
+ * its own fill go, and this one pill carries it from then on (on resize it just follows the row).
+ */
+function useSlidingPill(activeId: string | null, layoutKey: string) {
+  const list = useRef<HTMLDivElement>(null);
+  const pill = useRef<HTMLDivElement>(null);
+  const shown = useRef<string | null | undefined>(undefined);
+  useLayoutEffect(() => {
+    const box = list.current;
+    const p = pill.current;
+    if (!box || !p) return;
+    const place = (animate: boolean) => {
+      const row = box.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!row) {
+        gsap.set(p, { autoAlpha: 0 });
+        return;
+      }
+      const b = box.getBoundingClientRect();
+      const r = row.getBoundingClientRect();
+      const at = { x: r.left - b.left, y: r.top - b.top + box.scrollTop, width: r.width, height: r.height };
+      if (animate) gsap.to(p, { ...at, autoAlpha: 1, duration: 0.42, ease: "nook", overwrite: true });
+      else gsap.set(p, { ...at, autoAlpha: 1, overwrite: true });
+      box.dataset.sliding = "";
+    };
+    place(shown.current !== undefined && shown.current !== activeId && !reducedMotion());
+    shown.current = activeId;
+    // A ResizeObserver reports once as soon as it starts; only a real change of size re-places the pill.
+    let size = `${box.clientWidth}x${box.clientHeight}`;
+    const resized = new ResizeObserver(() => {
+      const now = `${box.clientWidth}x${box.clientHeight}`;
+      if (now !== size) place(false);
+      size = now;
+    });
+    resized.observe(box);
+    return () => resized.disconnect();
+  }, [activeId, layoutKey]);
+  return { list, pill };
+}
 
 /** "⌘K" on Apple keyboards, "Ctrl K" everywhere else. */
 function useShortcutLabel() {
@@ -59,7 +102,9 @@ function unreadLabel(u: ChannelUnread | undefined, direct: boolean) {
 
 function Count({ n }: { n: number }) {
   return (
+    // Keyed on the number, so a new count lands again instead of changing in place.
     <span
+      key={n}
       aria-hidden="true"
       data-num
       className="pop-in ml-auto inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-pop px-2 text-xs leading-none font-extrabold text-on-pop"
@@ -88,6 +133,7 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
   const palette = usePalette();
   const shortcut = useShortcutLabel();
   const directs = channels.filter((c): c is Channel & { dmUser: NonNullable<Channel["dmUser"]> } => c.kind === "direct" && !!c.dmUser);
+  const { list, pill } = useSlidingPill(activeChannelId, `${rooms.length}:${directs.length}`);
 
   return (
     <nav aria-label={`${nook.name} channels`} className="surface-wing tint flex h-full min-h-0 w-full flex-col">
@@ -98,9 +144,13 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
         >
           {nook.name}
         </h2>
-        <p className="mt-2.5 truncate text-sm font-medium text-fg-2">
-          {members.length} {members.length === 1 ? "member" : "members"}
-        </p>
+        {/* Who's in it, and the way to bring someone else in, on one quiet line under the name. */}
+        <div className="mt-2.5 flex items-center justify-between gap-3">
+          <p className="truncate text-sm font-medium text-fg-2">
+            {members.length} {members.length === 1 ? "member" : "members"}
+          </p>
+          <InvitePopover slug={nook.slug} nookName={nook.name} />
+        </div>
       </div>
       <div className="flex shrink-0 flex-col gap-2 px-3.5 pb-4">
         {/*
@@ -120,10 +170,16 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
             {shortcut}
           </kbd>
         </button>
-        <InvitePopover slug={nook.slug} nookName={nook.name} />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-6">
+      <div ref={list} className="relative min-h-0 flex-1 overflow-y-auto px-2.5 pb-6">
+        {/* Re-tints with the nook on its fill alone; its movement belongs to the slide. */}
+        <div
+          ref={pill}
+          data-current-pill
+          aria-hidden="true"
+          className="invisible absolute top-0 left-0 rounded-full bg-hi transition-[background-color] duration-[360ms] ease-out-expo"
+        />
         <section aria-labelledby="channels-heading">
           <SectionHeading id="channels-heading" action={<NewChannelPopover slug={nook.slug} />}>
             Channels

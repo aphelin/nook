@@ -45,6 +45,8 @@ export class UsersService {
           // A status with nothing in it has nothing to expire.
           statusExpiresAt: input.status && (input.status.emoji || input.status.text) ? (input.status.expiresAt ? new Date(input.status.expiresAt) : null) : null,
         }),
+        // Null goes back to the face the handle gives; the two columns are always set together.
+        ...(input.face !== undefined && { faceShape: input.face?.shape ?? null, faceTone: input.face?.tone ?? null }),
       },
     });
     return this.announce(toPublicUser(user));

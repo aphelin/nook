@@ -1,12 +1,13 @@
-import type { PresenceState, PublicUser } from "@nook/contracts";
-import { faceFor } from "@/lib/faces";
+import type { Face, PresenceState, PublicUser } from "@nook/contracts";
+import { faceOf } from "@/lib/faces";
 import { PresenceShape } from "./presence-shape";
 
 /*
  * People are shapes.
  *
  * Each person is a flat shape with their initial set heavy inside it, filled from the face colours
- * of whatever surface they are on (see lib/faces for which shape and colour a handle gets). An
+ * of whatever surface they are on: the shape and colour they chose in their profile, or the ones
+ * their handle gives them (see lib/faces). An
  * uploaded photo always wins — it is the one thing a member explicitly chose — and it is cut to
  * their shape, so a photo reads as the same person.
  *
@@ -16,7 +17,7 @@ import { PresenceShape } from "./presence-shape";
  */
 
 interface AvatarProps {
-  user: Pick<PublicUser, "displayName" | "handle" | "avatarUrl">;
+  user: Pick<PublicUser, "displayName" | "handle" | "avatarUrl"> & { face?: Face | null };
   size?: number;
   className?: string;
   /** Adds the presence mark in the bottom-right corner. */
@@ -33,7 +34,7 @@ const shapeMask = (d: string) =>
   `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><path d='${d}'/></svg>`)}")`;
 
 export function Avatar({ user, size = 32, className = "", presence, ring = false }: AvatarProps) {
-  const { shape, tone } = faceFor(user.handle);
+  const { path: shape, tone, shape: faceName } = faceOf(user);
   const initial = (user.displayName.trim()[0] ?? user.handle[0] ?? "?").toUpperCase();
   // The ring sits outside the shape with a gap, so the box grows to hold it.
   const pad = ring ? 7 : 0;
@@ -58,17 +59,25 @@ export function Avatar({ user, size = 32, className = "", presence, ring = false
       height={size}
       viewBox={`${-pad} ${-pad} ${box} ${box}`}
       aria-hidden="true"
+      data-face={faceName}
+      data-tone={tone}
       className={`shrink-0 overflow-visible ${photo ? "absolute inset-0 size-full" : className}`}
     >
       {ring && (
-        <path
-          d={shape}
-          transform="translate(20 20) scale(1.3) translate(-20 -20)"
-          fill="none"
-          strokeWidth={2.4}
-          className="tint"
-          style={{ stroke: "var(--ring)" }}
-        />
+        // The ring's size lives on the group; its arrival animates the path inside it, so the
+        // animation's own origin (the path's centre) never moves the ring off the person.
+        <g transform="translate(20 20) scale(1.3) translate(-20 -20)">
+          {/* Round caps and joins: where a drawn-on ring's dash starts and ends there is no corner, and a butt cap leaves a notch. */}
+          <path
+            d={shape}
+            fill="none"
+            strokeWidth={2.4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="tint ring-in"
+            style={{ stroke: "var(--ring)" }}
+          />
+        </g>
       )}
       {!photo && <path d={shape} className="tint" style={{ fill: `var(--face-${tone})` }} />}
       {!photo && size >= INITIAL_MIN && (

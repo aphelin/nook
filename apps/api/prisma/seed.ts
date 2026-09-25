@@ -16,14 +16,14 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
 export const DEMO_PASSWORD = 'nook-demo-2026';
 
 const people = [
-  { handle: 'mara', displayName: 'Mara Okafor', pronouns: 'she/her', bio: 'Sets routes, breaks them. Reads on the train.', statusEmoji: '🧗', statusText: 'Chalked up' },
-  { handle: 'jonas', displayName: 'Jonas Lindqvist', pronouns: 'he/him', bio: 'Owns too many carabiners.', statusEmoji: null, statusText: null },
-  { handle: 'priya', displayName: 'Priya Raman', pronouns: 'she/her', bio: 'Book club founder. Will lend you anything but her Le Guin.', statusEmoji: '📚', statusText: 'Chapter 12' },
-  { handle: 'theo', displayName: 'Theo Brandt', pronouns: 'he/him', bio: 'Modular synths and slab climbs.', statusEmoji: '🎛️', statusText: 'Patching' },
-  { handle: 'aiko', displayName: 'Aiko Tanaka', pronouns: 'she/her', bio: null, statusEmoji: null, statusText: null },
-  { handle: 'sam', displayName: 'Sam Achebe', pronouns: 'he/him', bio: 'Here for the noodles.', statusEmoji: null, statusText: null },
-  { handle: 'lena', displayName: 'Lena Moreau', pronouns: 'she/her', bio: 'Poetry, mostly.', statusEmoji: null, statusText: null },
-  { handle: 'dev', displayName: 'Dev Kapoor', pronouns: 'he/him', bio: 'Sells more gear than he buys.', statusEmoji: null, statusText: null },
+  { handle: 'mara', displayName: 'Mara Okafor', pronouns: 'she/her', bio: 'Sets routes, breaks them. Reads on the train.', statusEmoji: '🧗', statusText: 'Chalked up', faceShape: 'sparkle', faceTone: 3 },
+  { handle: 'jonas', displayName: 'Jonas Lindqvist', pronouns: 'he/him', bio: 'Owns too many carabiners.', statusEmoji: null, statusText: null, faceShape: 'drop', faceTone: 1 },
+  { handle: 'priya', displayName: 'Priya Raman', pronouns: 'she/her', bio: 'Book club founder. Will lend you anything but her Le Guin.', statusEmoji: '📚', statusText: 'Chapter 12', faceShape: 'circle', faceTone: 1 },
+  { handle: 'theo', displayName: 'Theo Brandt', pronouns: 'he/him', bio: 'Modular synths and slab climbs.', statusEmoji: '🎛️', statusText: 'Patching', faceShape: 'flower', faceTone: 2 },
+  { handle: 'aiko', displayName: 'Aiko Tanaka', pronouns: 'she/her', bio: null, statusEmoji: null, statusText: null, faceShape: 'star', faceTone: 2 },
+  { handle: 'sam', displayName: 'Sam Achebe', pronouns: 'he/him', bio: 'Here for the noodles.', statusEmoji: null, statusText: null, faceShape: 'arch', faceTone: 3 },
+  { handle: 'lena', displayName: 'Lena Moreau', pronouns: 'she/her', bio: 'Poetry, mostly.', statusEmoji: null, statusText: null, faceShape: 'pebble', faceTone: 1 },
+  { handle: 'dev', displayName: 'Dev Kapoor', pronouns: 'he/him', bio: 'Sells more gear than he buys.', statusEmoji: null, statusText: null, faceShape: 'leaf', faceTone: 2 },
 ] as const;
 
 type Handle = (typeof people)[number]['handle'];
@@ -247,6 +247,9 @@ async function main() {
       update: {},
       create: { email: `${p.handle}@nook.demo`, passwordHash, ...p },
     });
+    // Every demo member wears a face of their own. A database seeded before faces existed gets
+    // them filled in; a face someone has since picked for the account is left alone.
+    await prisma.user.updateMany({ where: { id: user.id, faceShape: null }, data: { faceShape: p.faceShape, faceTone: p.faceTone } });
     ids[p.handle] = user.id;
   }
 

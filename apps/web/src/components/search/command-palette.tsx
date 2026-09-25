@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { type ManualStatus, type NookDetail, parseSearch, type SearchHit } from "@nook/contracts";
+import { type ManualStatus, type NookDetail, parseSearch, type PublicUser, type SearchHit } from "@nook/contracts";
 import {
   ArrowRight,
   ChatCircle,
@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Mark } from "@/components/brand/mark";
 import { NookDisc } from "@/components/brand/nook-disc";
-import { wipeTo } from "@/components/shell/wipe";
+import { directionOf, shownNook, turn } from "@/components/shell/story-turn";
 import { useProfileEditor } from "@/components/people/profile-dialog";
 import { Avatar } from "@/components/ui/avatar";
 import { PresenceShape } from "@/components/ui/presence-shape";
@@ -70,7 +70,7 @@ function MessageHitContent({
 }: {
   hit: SearchHit;
   terms: string[];
-  author: { displayName: string; handle: string; avatarUrl: string | null } | undefined;
+  author: Pick<PublicUser, "displayName" | "handle" | "avatarUrl" | "face"> | undefined;
 }) {
   const where = hitWhere(hit);
   return (
@@ -254,8 +254,11 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
               </>
             ),
             run: () => {
-              wipeTo(n.kit, window.innerWidth / 2, window.innerHeight * 0.3);
-              go(`/app/${n.slug}`);
+              const from = nooks.findIndex((x) => x.slug === detail.nook.slug);
+              void turn(directionOf(from, nooks.indexOf(n)), async () => {
+                go(`/app/${n.slug}`);
+                await shownNook(n.slug);
+              });
             },
           })),
       ];

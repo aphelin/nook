@@ -47,7 +47,7 @@ test('the screen takes the colours of the nook you are in, and re-tints when you
   const orange = await room(page);
   expect(orange.r, `Harbour's room ${orange.css} should be orange`).toBeGreaterThan(orange.b + 80);
 
-  // The re-tint is a transition, not a cut: under the wipe, the colours travel rather than jump.
+  // The re-tint is a transition, not a cut: the colours travel rather than jump (a story turn switches it off while it runs).
   const duration = await page.getByTestId('shell').evaluate((el) => getComputedStyle(el).transitionDuration);
   expect(duration).toContain('0.36s');
 

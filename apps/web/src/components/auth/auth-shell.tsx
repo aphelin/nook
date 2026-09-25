@@ -16,7 +16,7 @@ interface AuthShellProps {
 
 /** A row of the shapes people are drawn as, in the panel's colours: a crowd with nobody named yet. */
 function Crowd() {
-  const shapes = [1, 0, 6, 3, 7, 2] as const;
+  const shapes = ["flower", "circle", "star", "squircle", "drop", "burst"] as const;
   return (
     <span aria-hidden="true" className="hidden gap-2 sm:flex">
       {shapes.map((s, i) => (

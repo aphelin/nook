@@ -1,4 +1,4 @@
-import { Pronouns, type PublicUser } from '@nook/contracts';
+import { type Face, FaceShape, FaceTone, Pronouns, type PublicUser } from '@nook/contracts';
 import type { User } from '../generated/prisma/client.js';
 
 /** Avatars live privately in storage; this address redirects there. The upload id in the key versions it. */
@@ -6,6 +6,13 @@ export function avatarUrl(u: Pick<User, 'id' | 'avatarKey'>): string | null {
   if (!u.avatarKey) return null;
   const version = u.avatarKey.slice(u.avatarKey.lastIndexOf('/') + 1).replace(/\.webp$/, '');
   return `/api/users/${u.id}/avatar?v=${version}`;
+}
+
+/** A chosen face, or null. A name this build doesn't know (say, from a newer one) falls back to the generated face. */
+function faceOf(u: Pick<User, 'faceShape' | 'faceTone'>): Face | null {
+  const shape = FaceShape.safeParse(u.faceShape);
+  const tone = FaceTone.safeParse(u.faceTone);
+  return shape.success && tone.success ? { shape: shape.data, tone: tone.data } : null;
 }
 
 export function toPublicUser(u: User, now = new Date()): PublicUser {
@@ -22,5 +29,6 @@ export function toPublicUser(u: User, now = new Date()): PublicUser {
     status: statusLive
       ? { emoji: u.statusEmoji, text: u.statusText, expiresAt: u.statusExpiresAt?.toISOString() ?? null }
       : { emoji: null, text: null, expiresAt: null },
+    face: faceOf(u),
   };
 }

@@ -307,10 +307,12 @@ function build(kit: Kit, scheme: Scheme): Palette {
       chip: nightCardChip,
       onChip: cardFg,
       ring: cardHi,
+      // The third face is the card's own light ink, not the night room: a deep navy on a near-black
+      // card all but vanished (1.4:1), and people are meant to be loud shapes on any surface.
       faces: [
         [cardHi, contrast(ink, cardHi) >= 4.6 ? ink : BLACK],
         [pop, onPop],
-        [stageBg, cardFg],
+        [cardFg, cardBg],
       ],
     };
   }

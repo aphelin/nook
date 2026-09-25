@@ -3,6 +3,7 @@
 import { type Attachment, MESSAGE_MAX_LENGTH, type NookMember, UPLOAD_TYPES } from "@nook/contracts";
 import { ArrowUp, Paperclip } from "@phosphor-icons/react/dist/ssr";
 import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { reducedMotion } from "@/lib/motion";
 import { useRealtime } from "@/lib/realtime";
 import { optimisticAttachment, type Uploads } from "@/lib/uploads";
 import { useMentionMenu } from "./mention-menu";
@@ -43,6 +44,20 @@ interface ComposerProps {
   mentionable: NookMember[];
 }
 
+/** Sent: the arrow leaves through the top of its disc and a fresh one rises into place. */
+function launch(el: HTMLElement | null) {
+  if (!el || reducedMotion()) return;
+  el.animate(
+    [
+      { transform: "translateY(0)", opacity: 1 },
+      { transform: "translateY(-130%)", opacity: 0, offset: 0.42 },
+      { transform: "translateY(130%)", opacity: 0, offset: 0.43 },
+      { transform: "translateY(0)", opacity: 1 },
+    ],
+    { duration: 440, easing: getComputedStyle(document.documentElement).getPropertyValue("--ease").trim() || "ease-out" },
+  );
+}
+
 export function Composer({
   channelId,
   draftKey = channelId,
@@ -55,6 +70,7 @@ export function Composer({
 }: ComposerProps) {
   const [value, setValue] = useState(() => readDraft(draftKey));
   const input = useRef<HTMLTextAreaElement>(null);
+  const sendIcon = useRef<HTMLSpanElement>(null);
   const mention = useMentionMenu(input, value, setValue, mentionable);
   const { socket } = useRealtime();
   const lastTyping = useRef(0);
@@ -88,6 +104,7 @@ export function Composer({
     e?.preventDefault();
     if (!canSend) return;
     onSend(trimmed, ready.map(optimisticAttachment));
+    launch(sendIcon.current);
     uploads.clear();
     setValue("");
     lastTyping.current = 0;
@@ -164,9 +181,11 @@ export function Composer({
             type="submit"
             disabled={!canSend}
             aria-label={uploads.uploading ? "Uploading, send when done" : "Send message"}
-            className="tint press grid size-10 shrink-0 place-items-center rounded-full bg-hi text-on-hi hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:[&>svg]:opacity-45"
+            className="tint press grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-hi text-on-hi hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:[&>svg]:opacity-45"
           >
-            <ArrowUp size={20} weight="bold" aria-hidden="true" />
+            <span ref={sendIcon} className="grid place-items-center">
+              <ArrowUp size={20} weight="bold" aria-hidden="true" />
+            </span>
           </button>
         </div>
       </div>

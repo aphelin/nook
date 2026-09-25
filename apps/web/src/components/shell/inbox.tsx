@@ -98,6 +98,7 @@ export function Inbox() {
         <Tray size={22} weight="bold" aria-hidden="true" />
         {count > 0 && (
           <span
+            key={count}
             aria-hidden="true"
             data-num
             className="pop-in absolute -top-1 -right-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-pop px-1.5 text-2xs leading-none font-extrabold text-on-pop ring-[3px] ring-rail"
