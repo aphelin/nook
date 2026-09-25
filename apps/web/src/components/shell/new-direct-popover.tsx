@@ -79,7 +79,7 @@ export function NewDirectPopover({ slug, members, meId }: NewDirectPopoverProps)
               key={member.id}
               value={member}
               onClick={() => void start(member)}
-              className="flex cursor-default items-center gap-3 rounded-full px-2 py-1.5 outline-none select-none data-[highlighted]:bg-chip"
+              className="flex cursor-pointer items-center gap-3 rounded-full px-2 py-1.5 outline-none select-none data-[highlighted]:bg-chip"
             >
               <Avatar user={member} size={32} />
               <span className="min-w-0">

@@ -15,6 +15,9 @@ import { CustomEase } from "gsap/CustomEase";
 gsap.registerPlugin(useGSAP, CustomEase);
 CustomEase.create("nook", "0.16,1,0.3,1");
 CustomEase.create("nook-pop", "0.3,1.4,0.55,1");
+// A shape turning into another: gathering, then most of the change through the middle, so the
+// shapes in between are there to see (the expo ease-out did nine tenths of it in the first 100ms).
+CustomEase.create("nook-morph", "0.55,0,0.3,1");
 
 export { gsap, useGSAP };
 

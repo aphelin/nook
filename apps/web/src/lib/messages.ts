@@ -81,6 +81,11 @@ function channelHistory(qc: QueryClient, channelId: string) {
   });
 }
 
+/** Loads a channel's latest messages into the cache (a cached channel is left alone). */
+export function prefetchHistory(qc: QueryClient, channelId: string): Promise<void> {
+  return qc.prefetchInfiniteQuery(channelHistory(qc, channelId));
+}
+
 export function useMessages(channelId: string) {
   const signedIn = useSession().state.status === "authenticated";
   const qc = useQueryClient();
@@ -97,7 +102,7 @@ export function usePrefetchChannel() {
   const qc = useQueryClient();
   return useCallback(
     (channelId: string) => {
-      if (signedIn) void qc.prefetchInfiniteQuery(channelHistory(qc, channelId));
+      if (signedIn) void prefetchHistory(qc, channelId);
     },
     [qc, signedIn],
   );

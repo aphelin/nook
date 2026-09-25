@@ -75,7 +75,13 @@ export function NewChannelPopover({ slug }: { slug: string }) {
           maxLength={40}
           value={name}
           onValueChange={setName}
-          description={name && normalise(name) !== name ? `Saved as #${normalise(name)}` : "Lowercase, with dashes between words."}
+          description={
+            name && normalise(name) !== name
+              ? normalise(name)
+                ? `Saved as #${normalise(name)}`
+                : "Use letters or numbers: a name of only symbols has nothing to save."
+              : "Lowercase, with dashes between words."
+          }
           validate={() => {
             const r = ChannelName.safeParse(normalise(name));
             return r.success ? null : (r.error.issues[0]?.message ?? "Check the name.");
@@ -89,9 +95,10 @@ export function NewChannelPopover({ slug }: { slug: string }) {
           <Switch.Root
             checked={isPrivate}
             onCheckedChange={setIsPrivate}
-            className="relative mt-0.5 h-8 w-13 shrink-0 rounded-full bg-chip transition-colors duration-150 data-[checked]:bg-hi"
+            className="relative mt-0.5 inline-flex h-8 w-13 shrink-0 items-center rounded-full bg-chip p-1 transition-colors duration-150 data-[checked]:bg-hi"
           >
-            <Switch.Thumb className="block size-6 translate-x-1 rounded-full bg-fg-2 transition-[translate,background-color] duration-200 ease-out-expo data-[checked]:translate-x-6 data-[checked]:bg-on-hi" />
+            {/* Centred in the track with 4px all round, travelling the 20px between its two ends. */}
+            <Switch.Thumb className="block size-6 rounded-full bg-fg-2 transition-[translate,background-color] duration-200 ease-out-expo data-[checked]:translate-x-5 data-[checked]:bg-on-hi" />
           </Switch.Root>
         </label>
         <Button type="submit" pending={create.isPending} pendingLabel="Creating…" className="w-full">

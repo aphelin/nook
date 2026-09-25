@@ -123,6 +123,10 @@ export function InvitePopover({ slug, nookName }: { slug: string; nookName: stri
               <input
                 readOnly
                 value={link}
+                // The code is the part that matters and sits at the end: show the end of the link, not its start.
+                ref={(el) => {
+                  if (el) el.scrollLeft = el.scrollWidth;
+                }}
                 onFocus={(e) => e.currentTarget.select()}
                 className="h-11 min-w-0 flex-1 rounded-full bg-chip px-4 text-base text-on-chip outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-hi"
               />
@@ -135,7 +139,7 @@ export function InvitePopover({ slug, nookName }: { slug: string; nookName: stri
           <p className="text-sm text-pretty text-fg-2" aria-live="polite">
             {describe(invite, nookName)}
           </p>
-          <Button variant="ghost" className="self-start px-0 hover:bg-transparent hover:underline" onClick={() => setInvite(null)}>
+          <Button variant="link" className="self-start" onClick={() => setInvite(null)}>
             Make a different link
           </Button>
         </div>

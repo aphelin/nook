@@ -3,12 +3,12 @@
 import type { Channel, ChannelUnread, NookDetail } from "@nook/contracts";
 import { Hash, LockSimple, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
-import { type ReactNode, useLayoutEffect, useRef, useSyncExternalStore } from "react";
+import { type MouseEvent, type ReactNode, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { StatusEmoji } from "@/components/people/person-card";
 import { usePalette } from "@/components/search/command-palette";
 import { Avatar } from "@/components/ui/avatar";
 import { usePrefetchChannel } from "@/lib/messages";
-import { gsap, reducedMotion } from "@/lib/motion";
+import { cssEase, reducedMotion } from "@/lib/motion";
 import { usePresence } from "@/lib/presence";
 import { countLabel, useChannelUnreads } from "@/lib/unread";
 import { InvitePopover } from "./invite-popover";
@@ -28,15 +28,22 @@ interface ChannelSheetProps {
  * pill of the room's own colour — a swatch of where you are.
  */
 const rowClass =
-  "tint group relative flex h-11 items-center gap-2.5 rounded-full px-3.5 text-base hover:bg-hover aria-[current=page]:bg-hi aria-[current=page]:text-on-hi [[data-sliding]_&]:aria-[current=page]:bg-transparent";
+  "tint group relative flex h-11 items-center gap-2.5 rounded-full px-3.5 text-base hover:bg-hover data-[current]:bg-hi data-[current]:text-on-hi [[data-sliding]_&]:data-[current]:bg-transparent";
+
+/** How long the pill takes to travel between rows. */
+const SLIDE_MS = 420;
 
 /**
  * The pill of where you are slides from the row you left to the row you picked, so moving between
  * channels reads as moving, not as one light going off and another coming on. The server draws the
  * pill on the row itself; once this has measured, the list is marked `data-sliding`, the row lets
  * its own fill go, and this one pill carries it from then on (on resize it just follows the row).
+ *
+ * It moves on the click, not when the new channel has loaded, and only its transform animates, on
+ * the compositor, so drawing the channel you are going to never holds it up. A second click mid-slide
+ * sets off from wherever the pill is by then.
  */
-function useSlidingPill(activeId: string | null, layoutKey: string) {
+function useSlidingPill(currentId: string | null, layoutKey: string) {
   const list = useRef<HTMLDivElement>(null);
   const pill = useRef<HTMLDivElement>(null);
   const shown = useRef<string | null | undefined>(undefined);
@@ -45,20 +52,26 @@ function useSlidingPill(activeId: string | null, layoutKey: string) {
     const p = pill.current;
     if (!box || !p) return;
     const place = (animate: boolean) => {
-      const row = box.querySelector<HTMLElement>('[aria-current="page"]');
+      const row = box.querySelector<HTMLElement>("[data-current]");
       if (!row) {
-        gsap.set(p, { autoAlpha: 0 });
+        p.style.visibility = "hidden";
         return;
       }
       const b = box.getBoundingClientRect();
       const r = row.getBoundingClientRect();
-      const at = { x: r.left - b.left, y: r.top - b.top + box.scrollTop, width: r.width, height: r.height };
-      if (animate) gsap.to(p, { ...at, autoAlpha: 1, duration: 0.42, ease: "nook", overwrite: true });
-      else gsap.set(p, { ...at, autoAlpha: 1, overwrite: true });
+      const to = `translate(${r.left - b.left}px, ${r.top - b.top + box.scrollTop}px)`;
+      const from = getComputedStyle(p).transform;
+      for (const a of p.getAnimations()) a.cancel();
+      p.style.width = `${r.width}px`;
+      p.style.height = `${r.height}px`;
+      p.style.transform = to;
+      p.style.visibility = "visible";
+      if (animate && from !== "none")
+        p.animate([{ transform: from }, { transform: to }], { duration: SLIDE_MS, easing: cssEase("--ease") });
       box.dataset.sliding = "";
     };
-    place(shown.current !== undefined && shown.current !== activeId && !reducedMotion());
-    shown.current = activeId;
+    place(shown.current !== undefined && shown.current !== currentId && !reducedMotion());
+    shown.current = currentId;
     // A ResizeObserver reports once as soon as it starts; only a real change of size re-places the pill.
     let size = `${box.clientWidth}x${box.clientHeight}`;
     const resized = new ResizeObserver(() => {
@@ -68,7 +81,7 @@ function useSlidingPill(activeId: string | null, layoutKey: string) {
     });
     resized.observe(box);
     return () => resized.disconnect();
-  }, [activeId, layoutKey]);
+  }, [currentId, layoutKey]);
   return { list, pill };
 }
 
@@ -118,7 +131,7 @@ function Count({ n }: { n: number }) {
 function ChannelGlyph({ kind }: { kind: Channel["kind"] }) {
   const Icon = kind === "private" ? LockSimple : Hash;
   return (
-    <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center opacity-80 group-aria-[current=page]:opacity-100">
+    <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center opacity-80 group-data-[current]:opacity-100">
       <Icon size={17} weight="bold" />
     </span>
   );
@@ -133,7 +146,15 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
   const palette = usePalette();
   const shortcut = useShortcutLabel();
   const directs = channels.filter((c): c is Channel & { dmUser: NonNullable<Channel["dmUser"]> } => c.kind === "direct" && !!c.dmUser);
-  const { list, pill } = useSlidingPill(activeChannelId, `${rooms.length}:${directs.length}`);
+  // The row you picked is where you are from the click on; the route catches up behind it.
+  const [picked, setPicked] = useState<string | null>(null);
+  if (picked && picked === activeChannelId) setPicked(null);
+  const current = picked ?? activeChannelId;
+  const pick = (id: string) => (e: MouseEvent) => {
+    if (!(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)) setPicked(id);
+    onNavigate?.();
+  };
+  const { list, pill } = useSlidingPill(current, `${rooms.length}:${directs.length}`);
 
   return (
     <nav aria-label={`${nook.name} channels`} className="surface-wing tint flex h-full min-h-0 w-full flex-col">
@@ -178,7 +199,7 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
           ref={pill}
           data-current-pill
           aria-hidden="true"
-          className="invisible absolute top-0 left-0 rounded-full bg-hi transition-[background-color] duration-[360ms] ease-out-expo"
+          className="invisible absolute top-0 left-0 rounded-full bg-hi transition-[background-color] duration-[360ms] ease-out-expo will-change-transform"
         />
         <section aria-labelledby="channels-heading">
           <SectionHeading id="channels-heading" action={<NewChannelPopover slug={nook.slug} />}>
@@ -187,16 +208,17 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
           <ul className="mt-1.5 flex flex-col gap-0.5">
             {rooms.map((c) => {
               const u = unreads.get(c.id);
-              const active = c.id === activeChannelId;
+              const active = c.id === current;
               const unread = active ? 0 : (u?.unread ?? 0);
               return (
                 <li key={c.id}>
                   <Link
                     href={`/app/${nook.slug}/${c.id}`}
-                    onClick={onNavigate}
+                    onClick={pick(c.id)}
                     onPointerEnter={() => prefetch(c.id)}
                     onFocus={() => prefetch(c.id)}
-                    aria-current={active ? "page" : undefined}
+                    aria-current={c.id === activeChannelId ? "page" : undefined}
+                    data-current={active || undefined}
                     data-unread={unread || undefined}
                     className={`${rowClass} ${active ? "font-bold" : unread ? "font-bold text-fg" : "font-medium text-fg-2"}`}
                   >
@@ -223,16 +245,17 @@ export function ChannelSheet({ detail, activeChannelId, meId, onNavigate }: Chan
           ) : (
             <ul className="mt-1.5 flex flex-col gap-0.5">
               {directs.map((c) => {
-                const active = c.id === activeChannelId;
+                const active = c.id === current;
                 const unread = active ? 0 : (unreads.get(c.id)?.unread ?? 0);
                 return (
                   <li key={c.id}>
                     <Link
                       href={`/app/${nook.slug}/${c.id}`}
-                      onClick={onNavigate}
+                      onClick={pick(c.id)}
                       onPointerEnter={() => prefetch(c.id)}
                       onFocus={() => prefetch(c.id)}
-                      aria-current={active ? "page" : undefined}
+                      aria-current={c.id === activeChannelId ? "page" : undefined}
+                      data-current={active || undefined}
                       data-unread={unread || undefined}
                       className={`${rowClass} pl-2 ${active ? "font-bold [--face-1:var(--wing-bg)] [--fg-2:var(--wing-on-hi)] [--halo:var(--wing-hi)] [--on-face-1:var(--wing-hi)]" : unread ? "font-bold text-fg" : "font-medium text-fg-2"}`}
                     >

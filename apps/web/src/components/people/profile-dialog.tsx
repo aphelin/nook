@@ -142,7 +142,7 @@ function ProfileFormFor({ me, onDone }: { me: PublicUser; onDone: () => void }) 
   return (
     <form onSubmit={save} noValidate className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between gap-3 px-5 pt-6 pb-3 sm:px-7">
-        <Dialog.Title className="font-display text-3xl leading-none font-extrabold tracking-[-0.03em]">Edit profile</Dialog.Title>
+        <Dialog.Title className="font-display text-2xl leading-none font-extrabold tracking-[-0.03em]">Edit profile</Dialog.Title>
         <Dialog.Close
           aria-label="Close"
           className="grid size-10 place-items-center rounded-full bg-chip text-on-chip transition-[scale] duration-200 ease-out-expo hover:scale-105"

@@ -15,7 +15,7 @@ export function LinkPreviews({ items }: { items: LinkPreview[] }) {
         >
           <span className="min-w-0 flex-1">
             {p.siteName && <span className="block truncate text-sm font-semibold text-fg-2">{p.siteName}</span>}
-            <span className="mt-0.5 block font-display text-lg leading-snug font-extrabold text-pretty">{p.title}</span>
+            <span className="mt-0.5 block text-lg leading-snug font-bold text-pretty">{p.title}</span>
             {p.description && <span className="mt-1 line-clamp-2 block text-base leading-snug text-fg-2">{p.description}</span>}
           </span>
           {p.imageUrl && (

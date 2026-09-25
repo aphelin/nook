@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Mark } from "@/components/brand/mark";
 import { NookDisc } from "@/components/brand/nook-disc";
-import { directionOf, shownNook, turn } from "@/components/shell/story-turn";
+import { useSwitchNook } from "@/components/shell/switch-nook";
 import { useProfileEditor } from "@/components/people/profile-dialog";
 import { Avatar } from "@/components/ui/avatar";
 import { PresenceShape } from "@/components/ui/presence-shape";
@@ -60,7 +60,11 @@ function matches(label: string, words: string[]) {
   return words.every((w) => parts.some((p) => p.startsWith(w)));
 }
 
-const optionText = "min-w-0 flex-1 truncate";
+const optionText = "min-w-0 flex-1 truncate text-md font-semibold";
+/** Every row's leading mark (an icon, a face, a club's disc) sits in the same box, so every label starts at one edge. */
+function Lead({ children }: { children: ReactNode }) {
+  return <span className="grid size-6 shrink-0 place-items-center">{children}</span>;
+}
 const hintText = "shrink-0 text-sm text-fg-2";
 
 function MessageHitContent({
@@ -196,6 +200,7 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
   const search = useSearch(slug, settled, { enabled: settled.length > 0, limit: MESSAGE_PREVIEW });
   const hits = searchable && settled ? (search.data?.pages[0]?.items ?? []) : [];
 
+  const switcher = useSwitchNook();
   const go = useCallback(
     (href: string) => {
       close();
@@ -219,8 +224,10 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
             label: `#${c.name}`,
             content: (
               <>
-                <Icon size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
-                <span className={`${optionText} text-md leading-none ${u?.unread ? "font-extrabold" : "font-semibold"}`}>{c.name}</span>
+                <Lead>
+                  <Icon size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+                </Lead>
+                <span className={`${optionText} ${u?.unread ? "font-extrabold" : ""}`}>{c.name}</span>
                 {u?.unread ? <span className={hintText}>{u.mentions ? `${u.mentions} for you` : "Unread"}</span> : null}
               </>
             ),
@@ -233,7 +240,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
           label: c.dmUser!.displayName,
           content: (
             <>
-              <Avatar user={c.dmUser!} size={20} />
+              <Lead>
+                <Avatar user={c.dmUser!} size={20} />
+              </Lead>
               <span className={optionText}>{c.dmUser!.displayName}</span>
               <span className={hintText}>Direct message</span>
             </>
@@ -248,18 +257,14 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
             label: n.name,
             content: (
               <>
-                <NookDisc kit={n.kit} initial={n.name[0]} size={24} />
+                <Lead>
+                  <NookDisc kit={n.kit} initial={n.name[0]} size={24} />
+                </Lead>
                 <span className={optionText}>{n.name}</span>
                 <span className={hintText}>Nook</span>
               </>
             ),
-            run: () => {
-              const from = nooks.findIndex((x) => x.slug === detail.nook.slug);
-              void turn(directionOf(from, nooks.indexOf(n)), async () => {
-                go(`/app/${n.slug}`);
-                await shownNook(n.slug);
-              });
-            },
+            run: () => void switcher.go(n, close),
           })),
       ];
       // With nothing typed: unread channels first, then the rest, as a quick switcher.
@@ -281,7 +286,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
             label: `Message ${m.displayName}`,
             content: (
               <>
-                <ChatCircle size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+                <Lead>
+                  <ChatCircle size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+                </Lead>
                 <span className={optionText}>
                   Message <span className="font-semibold">{m.displayName}</span>
                 </span>
@@ -316,7 +323,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
         label: `See all results for ${query.trim()}`,
         content: (
           <>
-            <MagnifyingGlass size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+            <Lead>
+              <MagnifyingGlass size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+            </Lead>
             <span className={optionText}>
               See all results for <span className="font-semibold">“{query.trim()}”</span>
             </span>
@@ -349,7 +358,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
             label: s.label,
             content: (
               <>
-                <PresenceShape state={s.value} size={14} />
+                <Lead>
+                  <PresenceShape state={s.value} size={14} />
+                </Lead>
                 <span className={optionText}>{s.label}</span>
               </>
             ),
@@ -364,7 +375,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
           label: "Edit profile",
           content: (
             <>
-              <PencilSimple size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              <Lead>
+                <PencilSimple size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              </Lead>
               <span className={optionText}>Edit profile</span>
             </>
           ),
@@ -379,7 +392,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
           label: "Mark all notifications read",
           content: (
             <>
-              <Checks size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              <Lead>
+                <Checks size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              </Lead>
               <span className={optionText}>Mark all notifications read</span>
             </>
           ),
@@ -394,7 +409,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
           label: "Start a nook",
           content: (
             <>
-              <Plus size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              <Lead>
+                <Plus size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              </Lead>
               <span className={optionText}>Start a nook</span>
             </>
           ),
@@ -406,7 +423,9 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
           label: "Sign out",
           content: (
             <>
-              <SignOut size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              <Lead>
+                <SignOut size={18} weight="bold" aria-hidden="true" className="shrink-0 text-fg-2" />
+              </Lead>
               <span className={optionText}>Sign out</span>
             </>
           ),
@@ -489,7 +508,7 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={activeDomId}
-          placeholder="Jump to a channel, find a message, or run a command"
+          placeholder="Jump, search or run a command"
           spellCheck={false}
           autoComplete="off"
           className="h-14 min-w-0 flex-1 bg-transparent text-lg font-medium outline-none placeholder:text-fg-2"
@@ -544,12 +563,13 @@ function PaletteBody({ detail, meId, query, setQuery, close }: PaletteBodyProps)
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-chip px-5 py-3 text-sm text-fg-2">
-        <span>
+        {/* Keys for keyboards: on a touchscreen there are none to press. */}
+        <span className="[@media(pointer:coarse)]:hidden">
           <kbd className="font-sans font-semibold text-fg">↑↓</kbd> move · <kbd className="font-sans font-semibold text-fg">Enter</kbd> open
         </span>
         <span className="ml-auto">
-          Narrow messages with <code className="font-mono text-sm text-fg">in:#channel</code>{" "}
-          <code className="font-mono text-sm text-fg">from:@name</code>
+          Narrow messages with <code className="rounded-md bg-bg px-1.5 py-0.5 font-sans text-sm font-semibold text-fg">in:#channel</code>{" "}
+          <code className="rounded-md bg-bg px-1.5 py-0.5 font-sans text-sm font-semibold text-fg">from:@name</code>
         </span>
       </div>
       <p aria-live="polite" className="sr-only">

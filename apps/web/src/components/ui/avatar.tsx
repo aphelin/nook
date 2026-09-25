@@ -1,6 +1,7 @@
 import type { Face, PresenceState, PublicUser } from "@nook/contracts";
-import { faceOf } from "@/lib/faces";
+import { faceOf, REACH_45 } from "@/lib/faces";
 import { PresenceShape } from "./presence-shape";
+import { Initial } from "@/components/brand/initial";
 
 /*
  * People are shapes.
@@ -24,6 +25,12 @@ interface AvatarProps {
   presence?: PresenceState;
   /** A ring in the person's own outline, for people who are here (the who's-here strip). */
   ring?: boolean;
+  /**
+   * A band of the surface's own colour this many pixels wide around the shape, in the shape's own
+   * outline: for a person set over a banner (the person card), so an arch or a star is cut out of
+   * the banner along its edge rather than sitting on a disc it pokes out of.
+   */
+  halo?: number;
 }
 
 /** Under this there is no room for a legible initial; the shape alone carries the person. */
@@ -33,7 +40,7 @@ const INITIAL_MIN = 20;
 const shapeMask = (d: string) =>
   `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><path d='${d}'/></svg>`)}")`;
 
-export function Avatar({ user, size = 32, className = "", presence, ring = false }: AvatarProps) {
+export function Avatar({ user, size = 32, className = "", presence, ring = false, halo = 0 }: AvatarProps) {
   const { path: shape, tone, shape: faceName } = faceOf(user);
   const initial = (user.displayName.trim()[0] ?? user.handle[0] ?? "?").toUpperCase();
   // The ring sits outside the shape with a gap, so the box grows to hold it.
@@ -61,49 +68,58 @@ export function Avatar({ user, size = 32, className = "", presence, ring = false
       aria-hidden="true"
       data-face={faceName}
       data-tone={tone}
-      className={`shrink-0 overflow-visible ${photo ? "absolute inset-0 size-full" : className}`}
+      className={`shrink-0 overflow-visible ${photo ? "absolute inset-0 size-full" : halo ? "block" : className}`}
     >
-      {ring && (
-        // The ring's size lives on the group; its arrival animates the path inside it, so the
-        // animation's own origin (the path's centre) never moves the ring off the person.
-        <g transform="translate(20 20) scale(1.3) translate(-20 -20)">
-          {/* Round caps and joins: where a drawn-on ring's dash starts and ends there is no corner, and a butt cap leaves a notch. */}
-          <path
-            d={shape}
-            fill="none"
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="tint ring-in"
-            style={{ stroke: "var(--ring)" }}
-          />
-        </g>
-      )}
-      {!photo && <path d={shape} className="tint" style={{ fill: `var(--face-${tone})` }} />}
-      {!photo && size >= INITIAL_MIN && (
-        <text
-          x="20"
-          y="21"
-          dy="0.35em"
-          textAnchor="middle"
-          fontSize="19"
-          fontWeight={800}
-          className="tint font-display"
-          style={{ fill: `var(--on-face-${tone})` }}
-        >
-          {initial}
-        </text>
-      )}
+      <g data-grow>
+        {ring && (
+          // The ring's size lives on the group; its arrival animates the path inside it, so the
+          // animation's own origin (the path's centre) never moves the ring off the person.
+          <g transform="translate(20 20) scale(1.3) translate(-20 -20)">
+            {/* Round caps and joins: where a drawn-on ring's dash starts and ends there is no corner, and a butt cap leaves a notch. */}
+            <path
+              d={shape}
+              fill="none"
+              strokeWidth={2.4}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="tint ring-in"
+              style={{ stroke: "var(--ring)" }}
+            />
+          </g>
+        )}
+        {!photo && <path d={shape} className="tint" style={{ fill: `var(--face-${tone})` }} />}
+        {!photo && size >= INITIAL_MIN && <Initial char={initial} y={21} style={{ fill: `var(--on-face-${tone})` }} />}
+      </g>
     </svg>
   );
+
+  // The band is the shape again, filled and stroked in the surface colour, so it is as wide all the
+  // way round (round joins keep it even at the points); drawn first, so the person sits on it.
+  const band = halo ? (
+    <svg aria-hidden="true" viewBox={`${-pad} ${-pad} ${box} ${box}`} className="absolute inset-0 size-full overflow-visible">
+      <path
+        d={shape}
+        strokeWidth={((halo * 2) / size) * box}
+        strokeLinejoin="round"
+        className="tint"
+        style={{ fill: "var(--bg)", stroke: "var(--bg)" }}
+      />
+    </svg>
+  ) : null;
 
   // With a photo, the image fills the shape's box (inset by the ring's room) and the ring, if any, is drawn over it.
   const svg = photo ? (
     <span className={`relative inline-block shrink-0 ${className}`} style={{ width: size, height: size }}>
-      <span className="absolute" style={{ inset: `${(pad / box) * 100}%` }}>
+      {band}
+      <span data-grow className="absolute" style={{ inset: `${(pad / box) * 100}%` }}>
         {photo}
       </span>
       {ring && drawing}
+    </span>
+  ) : band ? (
+    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: size, height: size }}>
+      {band}
+      <span className="relative block">{drawing}</span>
     </span>
   ) : (
     drawing
@@ -111,10 +127,12 @@ export function Avatar({ user, size = 32, className = "", presence, ring = false
 
   if (!presence) return svg;
   const dot = Math.min(14, Math.max(9, Math.round(size * 0.36)));
+  // On the shape's own edge towards the bottom-right, a little outside it, wherever that edge is.
+  const at = ((pad + 20 + REACH_45[faceName] / Math.SQRT2) / box) * size + dot * 0.14 - dot / 2;
   return (
     <span className="relative inline-flex shrink-0">
       {svg}
-      <PresenceShape state={presence} size={dot} className="absolute -right-1 -bottom-0.5" />
+      <PresenceShape state={presence} size={dot} className="absolute" style={{ left: at, top: at }} />
     </span>
   );
 }

@@ -41,7 +41,8 @@ export function TextField({ name, label, description, validate, prefix, trailing
         />
         {trailing && <div className="flex shrink-0 items-center pr-1">{trailing}</div>}
       </div>
-      {description && <Field.Description className="text-sm text-fg-2">{description}</Field.Description>}
+      {/* The error takes the helper line's place rather than repeating it underneath. */}
+      {description && <Field.Description className="text-sm text-fg-2 data-[invalid]:hidden">{description}</Field.Description>}
       <Field.Error className="field-error text-sm font-medium text-alert" />
     </Field.Root>
   );

@@ -76,8 +76,8 @@ export function PersonCard({ person, presence, actions, className = "w-[21rem] m
       <div className="surface-stage tint h-20" aria-hidden="true" />
       <div className="px-5 pb-5">
         <div className="-mt-12 flex items-end justify-between gap-3">
-          <span className="rounded-full bg-bg p-1.5">
-            <Avatar user={person} size={80} presence={presence} />
+          <span className="p-1.5">
+            <Avatar user={person} size={80} presence={presence} halo={6} />
           </span>
         </div>
         <p className="mt-3 font-display text-2xl leading-[1.05] font-extrabold tracking-[-0.02em] break-words text-fg">

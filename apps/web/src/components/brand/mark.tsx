@@ -35,15 +35,17 @@ export function Mark({ size = 28, className = "", variant = "ink" }: MarkProps) 
       aria-hidden="true"
       className={`shrink-0 overflow-visible ${className}`}
     >
-      <circle cx="12" cy="12" r="12" className="tint" style={{ fill: a }} />
-      <path
-        d={FLOWER}
-        transform="translate(20 0) scale(0.6)"
-        strokeWidth={4}
-        paintOrder="stroke"
-        className="tint"
-        style={{ fill: b, stroke: "var(--halo, var(--bg))" }}
-      />
+      <g data-grow>
+        <circle cx="12" cy="12" r="12" className="tint" style={{ fill: a }} />
+        <path
+          d={FLOWER}
+          transform="translate(20 0) scale(0.6)"
+          strokeWidth={4}
+          paintOrder="stroke"
+          className="tint"
+          style={{ fill: b, stroke: "var(--halo, var(--bg))" }}
+        />
+      </g>
     </svg>
   );
 }

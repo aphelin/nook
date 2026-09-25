@@ -331,14 +331,18 @@ export function Chapters() {
                 );
               })}
             </div>
-            <span data-arrive="pill" className="mt-4 inline-flex items-center gap-2.5 rounded-full bg-hover py-2 pr-4 pl-2.5 text-lg">
+            <span
+              data-arrive="pill"
+              className="mt-4 inline-flex max-w-full items-center gap-2.5 rounded-full bg-hover py-2 pr-4 pl-2.5 text-base sm:text-lg"
+            >
               <span className="flex -space-x-1.5">
                 {["jonas", "sam", "mara"].map((h) => (
                   <Avatar key={h} user={person(h)} size={34} />
                 ))}
               </span>
-              <span className="font-extrabold">3 replies</span>
-              <span className="font-semibold text-fg-2">Last reply 7:45 PM</span>
+              <span className="font-extrabold whitespace-nowrap">3 replies</span>
+              {/* One line on a phone too: there the count says enough, and the time joins it where there is room. */}
+              <span className="font-semibold whitespace-nowrap text-fg-2 max-sm:hidden">Last reply 7:45 PM</span>
               <CaretRight size={13} weight="bold" aria-hidden="true" />
             </span>
           </Said>

@@ -1,4 +1,5 @@
 import type { PresenceState } from "@nook/contracts";
+import type { CSSProperties } from "react";
 
 export const PRESENCE_LABEL: Record<PresenceState, string> = {
   online: "Online",
@@ -25,10 +26,28 @@ const FILL: Record<PresenceState, string> = {
   offline: "var(--fg-2)",
 };
 
-export function PresenceShape({ state, size = 10, className = "" }: { state: PresenceState; size?: number; className?: string }) {
+export function PresenceShape({
+  state,
+  size = 10,
+  className = "",
+  style,
+}: {
+  state: PresenceState;
+  size?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
   const fill = FILL[state];
   return (
-    <svg width={size} height={size} viewBox="0 0 16 16" role="img" aria-label={PRESENCE_LABEL[state]} className={`shrink-0 ${className}`}>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      role="img"
+      aria-label={PRESENCE_LABEL[state]}
+      className={`shrink-0 ${className}`}
+      style={style}
+    >
       <circle cx="8" cy="8" r="8" fill="var(--halo, var(--bg))" />
       {state === "dnd" ? (
         <rect x="2.5" y="6.5" width="11" height="3" rx="1.5" fill={fill} />

@@ -9,7 +9,7 @@ import { type CSSProperties, useCallback, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { NookDisc } from "@/components/brand/nook-disc";
 import { Wordmark } from "@/components/brand/wordmark";
-import { directionOf, originOf, turn } from "@/components/shell/story-turn";
+import { originOf, turn } from "@/components/shell/story-turn";
 import { ApiRequestError } from "@/lib/api";
 import { accentStyle } from "@/lib/accent";
 import { gsap, reducedMotion, useGSAP } from "@/lib/motion";
@@ -305,13 +305,13 @@ export function Landing() {
                                 setIndex(i);
                                 setPicked(true);
                               };
-                              // Another club turns the page like a story; the same one just stays.
+                              // Another club is poured over the page; the same one just stays.
                               if (i === index) return pick();
-                              void turn(directionOf(index, i), () => flushSync(pick));
+                              void turn(c.kit, () => flushSync(pick));
                             }}
-                            className={`grid place-items-center rounded-full p-[7px] transition-[scale] duration-200 ease-out-expo hover:scale-110 active:scale-95 ${
-                              i === index ? "ring-[3px] ring-fg ring-inset" : ""
-                            }`}
+                            data-grows
+                            style={{ "--grow": 1.1 } as CSSProperties}
+                            className={`grid place-items-center rounded-full p-[7px] ${i === index ? "ring-[3px] ring-fg ring-inset" : ""}`}
                           />
                         }
                       >

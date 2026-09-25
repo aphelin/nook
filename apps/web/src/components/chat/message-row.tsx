@@ -3,7 +3,7 @@
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import type { SystemEvent } from "@nook/contracts";
 import { ArrowClockwise, ChatCircleText, PencilSimple, Smiley, Trash, WarningCircle } from "@phosphor-icons/react/dist/ssr";
-import { type KeyboardEvent, useState } from "react";
+import { type KeyboardEvent, type PointerEvent, useState, useSyncExternalStore } from "react";
 import { PersonTrigger, StatusEmoji } from "@/components/people/person-card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,30 @@ const SYSTEM_LINE: Record<SystemEvent, string> = {
   member_joined: "joined the nook",
   channel_created: "opened the channel",
 };
+
+/*
+ * On a touchscreen there is no hover to bring a message's actions up, so a tap on the message does:
+ * one message at a time, and a tap anywhere else (or on it again) puts them away.
+ */
+let tapped: string | null = null;
+const listeners = new Set<() => void>();
+const setTapped = (id: string | null) => {
+  tapped = id;
+  for (const l of listeners) l();
+};
+const useTapped = (id: string) =>
+  useSyncExternalStore(
+    (on) => {
+      listeners.add(on);
+      return () => listeners.delete(on);
+    },
+    () => tapped === id,
+    () => false,
+  );
+if (typeof document !== "undefined")
+  document.addEventListener("pointerdown", (e) => {
+    if (tapped && !(e.target as Element | null)?.closest?.(`[data-message-id="${CSS.escape(tapped)}"]`)) setTapped(null);
+  });
 
 const timeFormat = new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit" });
 const fullFormat = new Intl.DateTimeFormat("en", { dateStyle: "full", timeStyle: "short" });
@@ -94,6 +118,12 @@ function EditBox({ message, onDone }: { message: ClientMessage; onDone: () => vo
  */
 export function MessageRow({ message, grouped, inThread = false, editing, onEditChange, onRetry, onDiscard }: MessageRowProps) {
   const { members, meId, openThread, resolveMention, slug } = useChat();
+  const actionsUp = useTapped(message.id);
+  const onTap = (e: PointerEvent) => {
+    // A tap on the message itself, not on a link, a name, a reaction or one of the actions.
+    if (e.pointerType !== "touch" || (e.target as Element).closest("a, button, input, textarea, [role=button]")) return;
+    setTapped(actionsUp ? null : message.id);
+  };
   // A mention chip opens that person's card, like their name does.
   const renderMention: RenderMention = (who, text, className) => {
     const person = members.get(who.id);
@@ -146,7 +176,9 @@ export function MessageRow({ message, grouped, inThread = false, editing, onEdit
       aria-label={`${name}, ${timeFormat.format(new Date(message.createdAt))}`}
       data-mentions-me={mentionsMe || undefined}
       data-message-id={message.id}
-      className={`group relative grid grid-cols-[2.75rem_minmax(0,1fr)] gap-x-3 rounded-[1.25rem] px-2 pb-1 transition-colors duration-100 hover:bg-hover has-[[data-popup-open]]:bg-hover ${
+      data-tapped={actionsUp || undefined}
+      onPointerUp={onTap}
+      className={`group relative grid grid-cols-[2.75rem_minmax(0,1fr)] gap-x-3 rounded-[1.25rem] px-2 pb-1 transition-colors duration-100 hover:bg-hover has-[[data-popup-open]]:bg-hover data-[tapped]:bg-hover ${
         grouped ? "pt-1" : "pt-2.5"
       }`}
     >
@@ -157,14 +189,7 @@ export function MessageRow({ message, grouped, inThread = false, editing, onEdit
             person={author}
             slug={slug}
             meId={meId}
-            render={
-              <button
-                type="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                className="block h-fit rounded-full transition-[scale] duration-200 ease-out-expo hover:scale-105"
-              />
-            }
+            render={<button type="button" tabIndex={-1} aria-hidden="true" data-grows className="block h-fit rounded-full" />}
           >
             <Avatar user={author} size={44} />
           </PersonTrigger>
@@ -247,7 +272,7 @@ export function MessageRow({ message, grouped, inThread = false, editing, onEdit
       </div>
 
       {!message.deletedAt && !message.status && !editing && (
-        <div className="surface-card absolute -top-4 right-3 z-20 hidden gap-0.5 rounded-full p-1 shadow-card group-focus-within:flex group-hover:flex has-[[data-popup-open]]:flex">
+        <div className="surface-card absolute -top-4 right-3 z-20 hidden gap-0.5 rounded-full p-1 shadow-card group-focus-within:flex group-hover:flex group-data-[tapped]:flex has-[[data-popup-open]]:flex">
           <EmojiPicker
             triggerLabel="Add a reaction"
             onPick={(emoji) => react.mutate({ message, emoji, add: true })}

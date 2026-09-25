@@ -161,7 +161,8 @@ export function LiveNook({ club, playing, onFinished }: LiveNookProps) {
       {/* The room, headed on phones by a band of the wing, so the demo stays a card on a page of its own colour. */}
       <div className="surface-stage tint flex min-h-0 flex-col">
         <div aria-hidden="true" className="surface-wing tint flex shrink-0 items-center gap-2.5 px-4 py-3 md:hidden">
-          <NookDisc kit={club.kit} initial={club.name[0]} size={30} />
+          {/* Drawn in the band's own highlight: the club's deep colour is the band itself, and half the disc vanished into it. */}
+          <NookDisc initial={club.name[0]} size={30} inverse />
           <span className="min-w-0 flex-1 truncate font-display text-lg leading-none font-extrabold tracking-[-0.02em]">{club.name}</span>
           <span className="tint inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-hi px-3 text-sm font-extrabold text-on-hi">
             <Hash size={13} weight="bold" />

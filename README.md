@@ -34,7 +34,7 @@ The one-click demo is on because `docker-compose.yml` sets `DEMO_LOGIN=true`; th
 
 <img alt="Two phones side by side in the Tuesday Climbers #general channel. On the left Mara types a message; the right phone shows “Mara is typing…”, then the message appears on both. Jonas replies and it appears on Mara’s phone." src="docs/media/realtime.gif" width="816">
 
-**The turn.** Switching nooks turns the screen to the new club like the next face of a cube, the way stories move from one account to the next: the room you leave swings away as the new club's room swings in, both real screens, in their own colours. Going down the rail turns forward, back up turns back; under reduced motion it is a plain cut.
+**The pour.** Switching nooks pours the new club's colour over the screen: a wave of liquid paint comes down from the top-left corner, drips swelling and hanging off its front and letting drops fall, and the new room, already in its own colours, fills in behind it. The paint is a WebGL shader drawn in a worker, beside a clip the browser animates on its own, so it keeps its pace while the new room is being drawn. The nook you point at is loaded before you click, so the paint runs over a room that is already drawn; under reduced motion it is a plain cut. (The recording below predates the pour.)
 
 <img alt="Switching between Tuesday Climbers, Dog-Eared and Patch Bay: each time the new club's bright colour floods out from its disc on the rail and lifts to show the room in navy and orange, wine and gold, then charcoal and coral." src="docs/media/kits.gif" width="880">
 
@@ -42,7 +42,7 @@ The one-click demo is on because `docker-compose.yml` sets `DEMO_LOGIN=true`; th
 
 <img alt="The command palette opens over #general; typing “heel ho” lists two messages from #beta-spray with the words highlighted; Enter jumps to #beta-spray and the matching message flashes." src="docs/media/search.gif" width="880">
 
-**The landing page** is a live nook running a scripted conversation, built from the app's own components. The club discs under the headline re-dress the whole first screen with the same wipe.
+**The landing page** is a live nook running a scripted conversation, built from the app's own components. The club discs under the headline pour each club over the whole first screen, and the crowd along its foot is a pile of real bodies (Box2D): heaped differently on every visit, flinching as the cursor brushes past, thrown about by a fast swipe or a tap, staying wherever they land. (The recording below predates the pour and the crowd.)
 
 <img alt="The Nook landing page: “Chat in the colours of Tuesday Climbers.” set huge on orange, with a live nook beside it under a row of story progress marks. Clicking Dog-Eared, Patch Bay and Harbour Rowing wipes the page into each club's colours and the headline names each club in turn." src="docs/media/landing.gif" width="880">
 
@@ -106,7 +106,7 @@ Custom JWT, no auth library:
 
 - **Direct to storage.** The api validates type and size, reserves an attachment and returns a presigned PUT that only accepts that exact type and length; the browser uploads straight to S3 (SeaweedFS) with real progress. The api never streams file bytes. Completion is confirmed against the object's actual size.
 - **Private bucket, cacheable links.** Files are served through presigned GETs signed as of the start of the hour: the same URL for an hour, so browsers cache it, and never less than an hour of validity left.
-- **Worker thumbnails.** Images go on the BullMQ queue; the worker reads real dimensions (EXIF rotation included) with sharp and writes a WebP thumbnail. Images render at their true proportions with space reserved before they load, so nothing shifts.
+- **Worker thumbnails.** Images go on the BullMQ queue; the worker reads real dimensions (EXIF rotation included) with sharp and writes a WebP thumbnail. Images render at their true proportions with space reserved before they load, so nothing shifts. A message's pictures open full size as one set, in the order they were attached, stepped through with arrows, the arrow keys or a swipe.
 - **Worker → sockets via Redis.** The worker isn't a socket server; it pushes updates into the same rooms through `@socket.io/redis-emitter`.
 - **SSRF-safe unfurling.** Only http(s) on 80/443; IP-literal hosts checked directly (Node never calls DNS for them, e.g. `169.254.169.254`); every hostname resolved inside the connection with private, loopback, link-local and CGNAT ranges refused, so there's no DNS-rebinding window; redirects followed by hand and re-checked; 5 s timeout, 1 MB cap, HTML only. Preview images are https-only and loaded without a referrer.
 - **Housekeeping.** A repeating job deletes uploads that were never sent.

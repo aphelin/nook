@@ -37,7 +37,7 @@ export function AuthShell({ panel, compactPanelOnMobile = false, kit, children }
   return (
     <div
       style={kit ? accentStyle(kit) : undefined}
-      className="surface-card grid min-h-dvh grid-rows-[auto_1fr] lg:grid-cols-[minmax(0,6fr)_minmax(0,6fr)] lg:grid-rows-1"
+      className="surface-card grid min-h-dvh grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr] lg:grid-cols-[minmax(0,6fr)_minmax(0,6fr)] lg:grid-rows-1"
     >
       <aside className="surface-stage tint flex flex-col lg:m-3 lg:rounded-card">
         <div

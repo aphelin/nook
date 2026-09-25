@@ -23,9 +23,10 @@ export default async function Status() {
   const health = await getHealth();
 
   return (
-    <main className="surface-stage flex min-h-dvh flex-col px-6 py-8 sm:px-12">
+    // Laid out like the other status pages (brand/status-page): the same padding, the column centred.
+    <main className="surface-stage flex min-h-dvh flex-col px-6 py-8 sm:px-12 md:py-10">
       <Wordmark href="/" size="lg" />
-      <div className="my-auto w-full max-w-xl">
+      <div className="my-auto w-full max-w-5xl self-center py-12 [&>dl]:max-w-xl">
         <h1 className="font-display text-4xl font-extrabold tracking-[-0.04em]">Status</h1>
         <dl className="surface-card mt-8 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-8 gap-y-4 rounded-card p-7 shadow-card">
           <Row term="API" value={health ? `ok · ${health.instance}` : "unreachable"} ok={!!health} />

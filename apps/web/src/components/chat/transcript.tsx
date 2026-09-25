@@ -146,6 +146,29 @@ export function Transcript({
     if (sentCount > 0) list.current?.scrollToIndex({ index: "LAST", behavior: "auto" });
   }, [sentCount]);
 
+  // The composer growing (a longer message, an attachment) takes height from the list's bottom
+  // edge. Resting on the newest message, the list keeps its floor there instead of letting the
+  // composer cover it; scrolled up to read, it is left where it is.
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el || !listMounted) return;
+    let floor = el.scrollHeight - el.scrollTop - el.clientHeight <= 4;
+    let height = el.clientHeight;
+    const onScroll = () => {
+      floor = el.scrollHeight - el.scrollTop - el.clientHeight <= 4;
+    };
+    const resized = new ResizeObserver(() => {
+      if (el.clientHeight < height && floor) el.scrollTop = el.scrollHeight;
+      height = el.clientHeight;
+    });
+    el.addEventListener("scroll", onScroll, { passive: true });
+    resized.observe(el);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      resized.disconnect();
+    };
+  }, [listMounted]);
+
   // Reading: at the bottom of a visible tab, the latest saved message is read, and so is anything
   // that arrives while you stay there.
   const visible = useTabVisible();

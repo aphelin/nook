@@ -3,7 +3,7 @@
 import type { Message } from "@nook/contracts";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { Avatar } from "@/components/ui/avatar";
-import { useChat } from "./chat-context";
+import { useActiveThread, useChat } from "./chat-context";
 
 const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
@@ -24,7 +24,8 @@ function ago(iso: string) {
  * conversation the card beside it is showing.
  */
 export function ThreadSummary({ message }: { message: Message }) {
-  const { members, activeThreadId, openThread } = useChat();
+  const { members, openThread } = useChat();
+  const activeThreadId = useActiveThread();
   if (message.replyCount === 0) return null;
   const active = activeThreadId === message.id;
   return (

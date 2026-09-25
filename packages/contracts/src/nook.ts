@@ -5,8 +5,8 @@ import { PublicUser } from './user.js';
 
 export const Slug = z
   .string()
-  .min(2)
-  .max(32)
+  .min(2, 'At least 2 characters')
+  .max(32, 'Keep it to 32 characters')
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Lowercase letters, numbers and single dashes only');
 
 export const Nook = z.object({
@@ -23,7 +23,7 @@ export const Nook = z.object({
 export type Nook = z.infer<typeof Nook>;
 
 export const CreateNook = z.object({
-  name: z.string().trim().min(1, 'Give your nook a name').max(48),
+  name: z.string().trim().min(1, 'Give your nook a name').max(48, 'Keep it under 48 characters'),
   slug: Slug,
   description: z.string().trim().max(280).nullable().default(null),
   kit: Kit,
@@ -41,7 +41,7 @@ export const ChannelName = z
   .trim()
   .toLowerCase()
   .min(1, 'Name the channel')
-  .max(40)
+  .max(40, 'Keep it to 40 characters')
   .regex(/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/, 'Lowercase letters, numbers, dashes and underscores');
 
 export const Channel = z.object({

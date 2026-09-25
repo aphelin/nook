@@ -25,12 +25,14 @@ export function useNooks() {
   });
 }
 
+/** A nook's channels and members, as a query anything can load ahead of time. */
+export const nookDetailQuery = (slug: string) => ({
+  queryKey: keys.nook(slug),
+  queryFn: () => api(`/nooks/${slug}`, { schema: NookDetail }),
+});
+
 export function useNookDetail(slug: string) {
-  return useQuery({
-    queryKey: keys.nook(slug),
-    queryFn: () => api(`/nooks/${slug}`, { schema: NookDetail }),
-    enabled: useSignedIn(),
-  });
+  return useQuery({ ...nookDetailQuery(slug), enabled: useSignedIn() });
 }
 
 export function useCreateNook() {

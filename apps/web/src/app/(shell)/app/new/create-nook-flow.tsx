@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { FormAlert } from "@/components/ui/form-alert";
 import { TextField } from "@/components/ui/text-field";
 import { ApiRequestError } from "@/lib/api";
-import { accentStyle, discStyle } from "@/lib/accent";
+import { accentStyle, swatchStyle } from "@/lib/accent";
 import { useCreateNook } from "@/lib/queries";
 
 const toSlug = (name: string) =>
@@ -36,14 +36,14 @@ function KitPreview({ name }: { name: string }) {
   const shown = name.trim() || "Your nook";
   return (
     <figure aria-label={`Preview of ${shown} in its colours`} className="w-full max-w-[36rem]">
-      <div aria-hidden="true" className="flex h-[30rem] overflow-hidden rounded-card shadow-float ring-[3px] ring-fg">
+      <div aria-hidden="true" className="flex h-[30rem] overflow-hidden rounded-card shadow-float">
         <div className="surface-rail tint flex w-[3.75rem] shrink-0 flex-col items-center gap-3 pt-4">
           <Mark size={26} variant="kit" />
           <span className="rounded-full p-[2px] ring-2 ring-fg ring-inset">
             <NookDisc initial={shown[0]} size={36} />
           </span>
         </div>
-        <div className="surface-wing tint flex w-[10.5rem] shrink-0 flex-col px-2.5 pt-5">
+        <div className="surface-wing tint flex w-[10.5rem] min-w-0 shrink flex-col px-2.5 pt-5">
           <p className="line-clamp-2 px-1.5 font-display text-lg leading-[0.95] font-extrabold tracking-[-0.02em]">{shown}</p>
           <span className="mt-3 block h-8 rounded-full bg-chip" />
           <span className="mt-1.5 block h-8 rounded-full bg-pop" />
@@ -116,7 +116,7 @@ export function CreateNookFlow() {
 
   return (
     <main style={accentStyle(kit)} className="surface-stage tint min-h-dvh">
-      <div className="mx-auto grid min-h-dvh max-w-6xl gap-12 px-5 py-8 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+      <div className="mx-auto grid min-h-dvh max-w-6xl grid-cols-[minmax(0,1fr)] gap-12 px-5 py-8 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
         <div className="flex flex-col">
           <Link
             href="/app"
@@ -179,8 +179,8 @@ export function CreateNookFlow() {
               </legend>
               <p className="mt-1 text-sm text-fg-2">Pick the pair that feels like your group. The whole page tries it on.</p>
               {/*
-               * Each swatch is the kit's two colours as the nook will wear them, split across a disc,
-               * so the choice is made against the pair rather than against one paint chip.
+               * Each swatch is the nook as it will look in your scheme: the room's colour with its
+               * highlight across the foot, so what you pick is what the page turns into.
                */}
               <RadioGroup value={kitName} onValueChange={(v) => setKitName(v as string)} className="mt-4 flex flex-wrap gap-2.5">
                 {KIT_PRESETS.map((preset) => (
@@ -188,8 +188,8 @@ export function CreateNookFlow() {
                     key={preset.name}
                     value={preset.name}
                     aria-label={preset.name}
-                    style={discStyle(preset.kit)}
-                    className="size-12 rounded-full bg-[linear-gradient(to_bottom,var(--disc)_70%,var(--disc-deep)_70%)] transition-[scale] duration-200 ease-out-expo hover:scale-110 data-[checked]:scale-110 data-[checked]:ring-[3px] data-[checked]:ring-fg data-[checked]:ring-offset-[3px] data-[checked]:ring-offset-bg"
+                    style={swatchStyle(preset.kit)}
+                    className="size-12 rounded-full bg-[linear-gradient(to_bottom,var(--swatch-room)_70%,var(--swatch-hi)_70%)] transition-[scale] duration-200 ease-out-expo hover:scale-110 data-[checked]:scale-110 data-[checked]:ring-[3px] data-[checked]:ring-fg data-[checked]:ring-offset-[3px] data-[checked]:ring-offset-bg"
                   />
                 ))}
               </RadioGroup>

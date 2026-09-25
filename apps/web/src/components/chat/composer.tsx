@@ -181,7 +181,7 @@ export function Composer({
             type="submit"
             disabled={!canSend}
             aria-label={uploads.uploading ? "Uploading, send when done" : "Send message"}
-            className="tint press grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-hi text-on-hi hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:[&>svg]:opacity-45"
+            className="tint press grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-hi text-on-hi hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:[&_svg]:opacity-45"
           >
             <span ref={sendIcon} className="grid place-items-center">
               <ArrowUp size={20} weight="bold" aria-hidden="true" />

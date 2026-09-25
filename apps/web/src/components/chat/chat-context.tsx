@@ -9,8 +9,6 @@ export interface ChatContextValue {
   slug: string;
   members: Map<string, NookMember>;
   meId: string;
-  /** The root whose thread is open, if any: its summary carries the mark. */
-  activeThreadId: string | null;
   openThread: (rootId: string) => void;
   /** @handle → someone in this nook, for mention chips. */
   resolveMention: ResolveMention;
@@ -23,6 +21,14 @@ export function useChat(): ChatContextValue {
   if (!ctx) throw new Error("useChat must be used inside a channel view");
   return ctx;
 }
+
+/**
+ * The root whose thread is open, if any: its summary carries the mark. Kept apart from the chat
+ * context, which every message reads, so opening a thread redraws the one summary that changes
+ * rather than every message in the room.
+ */
+export const ActiveThreadContext = createContext<string | null>(null);
+export const useActiveThread = () => useContext(ActiveThreadContext);
 
 /** "Mara", "Mara and Jonas", "Mara, Jonas and 3 others". */
 export function listNames(ids: string[], members: Map<string, NookMember>, meId: string): string {

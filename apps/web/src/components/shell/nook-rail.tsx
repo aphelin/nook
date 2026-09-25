@@ -1,23 +1,25 @@
 "use client";
 
 import { Menu } from "@base-ui/react/menu";
+import { Tooltip } from "@base-ui/react/tooltip";
 import { type ManualStatus } from "@nook/contracts";
 import { Check, PencilSimple, Plus, SignOut } from "@phosphor-icons/react/dist/ssr";
 import { Mark } from "@/components/brand/mark";
 import { NookDisc } from "@/components/brand/nook-disc";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import type { CSSProperties } from "react";
 import { StatusLine } from "@/components/people/person-card";
 import { useProfileEditor } from "@/components/people/profile-dialog";
 import { Avatar } from "@/components/ui/avatar";
 import { PresenceShape } from "@/components/ui/presence-shape";
+import { Tip } from "@/components/ui/tip";
 import { chooseStatus, useManualStatus } from "@/lib/presence";
 import { useNooks } from "@/lib/queries";
 import { useRealtime } from "@/lib/realtime";
 import { useSession } from "@/lib/session";
 import { countLabel, useUnread } from "@/lib/unread";
 import { Inbox } from "./inbox";
-import { directionOf, shownNook, turn } from "./story-turn";
+import { useSwitchNook } from "./switch-nook";
 
 const STATUSES: { value: ManualStatus; label: string; hint: string }[] = [
   { value: "online", label: "Automatic", hint: "Online while you’re here" },
@@ -28,7 +30,7 @@ const STATUSES: { value: ManualStatus; label: string; hint: string }[] = [
 export const menuPopup =
   "surface-card min-w-[16rem] origin-[var(--transform-origin)] rounded-[1.5rem] p-2 shadow-float outline-none transition-[opacity,scale] duration-200 ease-out-expo data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0";
 export const menuItem =
-  "flex h-10 cursor-default items-center gap-2.5 rounded-full px-3.5 text-base font-medium outline-none data-[highlighted]:bg-chip";
+  "flex h-10 cursor-pointer items-center gap-2.5 rounded-full px-3.5 text-base font-medium outline-none data-[highlighted]:bg-chip";
 
 /**
  * The rail: every nook you are in, as its colours.
@@ -40,7 +42,7 @@ export const menuItem =
  */
 export function NookRail({ activeSlug }: { activeSlug: string | null }) {
   const nooks = useNooks();
-  const router = useRouter();
+  const switcher = useSwitchNook();
   const { state, signOut } = useSession();
   const { socket } = useRealtime();
   const status = useManualStatus();
@@ -63,83 +65,78 @@ export function NookRail({ activeSlug }: { activeSlug: string | null }) {
       <Link
         href="/app"
         aria-label="Nook home"
-        className="mb-5 shrink-0 rounded-chip p-1 transition-transform duration-200 ease-out-expo hover:scale-110"
+        data-grows
+        style={{ "--grow": 1.1 } as CSSProperties}
+        className="mb-5 shrink-0 rounded-chip p-1"
       >
         <Mark size={34} variant="kit" />
       </Link>
-      <ul className="flex w-full flex-col items-center gap-3 overflow-y-auto px-1 py-1.5">
-        {nooks.data?.map((nook) => {
-          const active = nook.slug === activeSlug;
-          const { any, forYou } = nookUnread(nook.id);
-          return (
-            <li key={nook.id} className="w-full">
-              <Link
-                href={`/app/${nook.slug}`}
-                title={nook.name}
-                aria-current={active ? "page" : undefined}
-                aria-label={`${nook.name}${forYou ? `, ${countLabel(forYou)} for you` : any ? ", unread messages" : ""}`}
-                data-unread={any || undefined}
-                onClick={(e) => {
-                  if (active || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                  // The link still works without a script; with one, the move is a story turn.
-                  e.preventDefault();
-                  const from = nooks.data?.findIndex((n) => n.slug === activeSlug) ?? 0;
-                  const to = nooks.data?.findIndex((n) => n.slug === nook.slug) ?? 0;
-                  void turn(directionOf(from, to), async () => {
-                    router.push(`/app/${nook.slug}`);
-                    await shownNook(nook.slug);
-                  });
-                }}
-                className="group mx-auto flex w-fit items-center justify-center rounded-full"
-              >
-                <span
-                  className={`relative grid place-items-center rounded-full p-[5.5px] transition-[scale] duration-200 ease-out-expo group-hover:scale-105 group-active:scale-95 ${
-                    active ? "ring-[2.5px] ring-fg ring-inset" : ""
-                  }`}
-                >
-                  <NookDisc kit={nook.kit} initial={nook.name[0]} size={44} />
-                  {any && !active && (
+      <Tooltip.Provider delay={250}>
+        <ul className="flex w-full flex-col items-center gap-3 overflow-y-auto px-1 py-1.5">
+          {nooks.data?.map((nook) => {
+            const active = nook.slug === activeSlug;
+            const { any, forYou } = nookUnread(nook.id);
+            return (
+              <li key={nook.id} className="w-full">
+                <Tip label={nook.name} side="right">
+                  <Link
+                    href={`/app/${nook.slug}`}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={`${nook.name}${forYou ? `, ${countLabel(forYou)} for you` : any ? ", unread messages" : ""}`}
+                    data-unread={any || undefined}
+                    onPointerEnter={() => !active && switcher.prefetch(nook.slug)}
+                    onFocus={() => !active && switcher.prefetch(nook.slug)}
+                    onClick={(e) => {
+                      if (active || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                      // The link still works without a script; with one, the new club is poured over the screen.
+                      e.preventDefault();
+                      void switcher.go(nook);
+                    }}
+                    data-grows
+                    className="group mx-auto flex w-fit items-center justify-center rounded-full"
+                  >
                     <span
-                      key={forYou}
-                      aria-hidden="true"
-                      data-num
-                      className="pop-in absolute -top-0.5 -right-0.5 inline-flex items-center justify-center rounded-full bg-pop text-2xs leading-none font-extrabold text-on-pop ring-[3px] ring-rail"
-                      style={forYou > 0 ? { minWidth: 20, height: 20, padding: "0 5px" } : { width: 13, height: 13 }}
+                      className={`relative grid place-items-center rounded-full p-1.5 ${active ? "ring-[2.5px] ring-fg ring-inset" : ""}`}
                     >
-                      {forYou > 0 ? countLabel(forYou, 100) : ""}
+                      <NookDisc kit={nook.kit} initial={nook.name[0]} size={44} />
+                      {any && !active && (
+                        <span
+                          key={forYou}
+                          aria-hidden="true"
+                          data-num
+                          className="pop-in absolute -top-0.5 -right-0.5 inline-flex items-center justify-center rounded-full bg-pop text-2xs leading-none font-extrabold text-on-pop ring-[3px] ring-rail"
+                          style={forYou > 0 ? { minWidth: 20, height: 20, padding: "0 5px" } : { width: 13, height: 13 }}
+                        >
+                          {forYou > 0 ? countLabel(forYou, 100) : ""}
+                        </span>
+                      )}
                     </span>
-                  )}
+                  </Link>
+                </Tip>
+              </li>
+            );
+          })}
+          <li className="w-full">
+            <Tip label="Start a nook" side="right">
+              <Link href="/app/new" aria-label="Start a nook" className="group mx-auto grid size-14 place-items-center rounded-full">
+                {/* A disc not yet coloured in: a nook that is not started yet. */}
+                <span
+                  aria-hidden="true"
+                  className="grid size-11 place-items-center rounded-full bg-chip text-fg-2 transition-[scale,color,background-color] duration-200 ease-out-expo group-hover:scale-105 group-hover:bg-hi group-hover:text-on-hi"
+                >
+                  <Plus size={20} weight="bold" />
                 </span>
               </Link>
-            </li>
-          );
-        })}
-        <li className="w-full">
-          <Link
-            href="/app/new"
-            aria-label="Start a nook"
-            title="Start a nook"
-            className="group mx-auto grid size-[55px] place-items-center rounded-full"
-          >
-            {/* A disc not yet coloured in: a nook that is not started yet. */}
-            <span
-              aria-hidden="true"
-              className="grid size-11 place-items-center rounded-full bg-chip text-fg-2 transition-[scale,color,background-color] duration-200 ease-out-expo group-hover:scale-105 group-hover:bg-hi group-hover:text-on-hi"
-            >
-              <Plus size={20} weight="bold" />
-            </span>
-          </Link>
-        </li>
-      </ul>
+            </Tip>
+          </li>
+        </ul>
+      </Tooltip.Provider>
 
       {state.status === "authenticated" && (
         <div className="mt-auto flex w-full flex-col items-center gap-3 pt-3 pb-4">
           <Inbox />
           <Menu.Root>
-            <Menu.Trigger
-              aria-label={`Account: ${state.user.displayName}`}
-              className="rounded-full p-1 transition-[scale] duration-200 ease-out-expo hover:scale-105 data-[popup-open]:scale-105"
-            >
+            <Menu.Trigger aria-label={`Account: ${state.user.displayName}`} data-grows className="grid place-items-center rounded-full p-1">
               <Avatar user={state.user} size={38} presence={status === "online" ? "online" : status} />
             </Menu.Trigger>
             <Menu.Portal>
@@ -167,9 +164,10 @@ export function NookRail({ activeSlug }: { activeSlug: string | null }) {
                           key={s.value}
                           value={s.value}
                           closeOnClick
-                          className="grid cursor-default grid-cols-[0.875rem_minmax(0,1fr)_1rem] items-center gap-2.5 rounded-[1rem] px-3.5 py-2 outline-none data-[highlighted]:bg-chip"
+                          className="grid cursor-pointer grid-cols-[1rem_minmax(0,1fr)_1rem] items-center gap-2.5 rounded-[1.5rem] px-3.5 py-2 outline-none data-[highlighted]:bg-chip"
                         >
-                          <PresenceShape state={s.value} size={12} />
+                          {/* In the same 16px column as the other items' icons, so every label starts at one edge. */}
+                          <PresenceShape state={s.value} size={12} className="justify-self-center" />
                           <span>
                             <span className="block text-base font-medium">{s.label}</span>
                             <span className="block text-xs text-fg-2">{s.hint}</span>

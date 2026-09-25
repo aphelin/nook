@@ -3,8 +3,8 @@ import { Emoji, Id, IsoDate } from './common.js';
 
 export const Handle = z
   .string()
-  .min(2)
-  .max(24)
+  .min(2, 'At least 2 characters')
+  .max(24, 'Keep it to 24 characters')
   .regex(/^[a-z0-9_]+$/, 'Lowercase letters, numbers and underscores only');
 
 export const PresenceState = z.enum(['online', 'away', 'dnd', 'offline']);

@@ -2,7 +2,7 @@
 
 import type { Channel } from "@nook/contracts";
 import { X } from "@phosphor-icons/react/dist/ssr";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { flatten, useMessage, useMessages, useSendMessage, useThread } from "@/lib/messages";
 import { useChat } from "./chat-context";
 import { refreshUnread, markNotificationsRead, viewing } from "@/lib/unread";
@@ -23,6 +23,9 @@ interface ThreadPanelProps {
 /** A thread beside the channel: the root, its replies, and a reply box. Threads are short, so no virtualization. */
 export function ThreadPanel({ rootId, channel, onClose }: ThreadPanelProps) {
   const { meId, members } = useChat();
+  // The panel is drawn in two passes: its head at once, with the click, so its column starts opening
+  // straight away; the conversation and the reply box just after, off the click's critical path.
+  const filled = useDeferredValue(true, false);
   const mentionable = useMemo(
     () => [...members.values()].filter((m) => m.id !== meId && channel.memberIds.includes(m.id)),
     [members, meId, channel.memberIds],
@@ -82,82 +85,93 @@ export function ThreadPanel({ rootId, channel, onClose }: ThreadPanelProps) {
         </button>
       </div>
 
-      <DropZone label="Drop to reply with it" onFiles={(files) => void uploads.add(files)}>
-        <div
-          ref={scroller}
-          onScroll={(e) => {
-            const el = e.currentTarget;
-            stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
-          }}
-          className="min-h-0 flex-1 overflow-y-auto px-1 pt-2 pb-4 md:px-3"
-        >
-          {rootMessage ? (
-            <MessageRow
-              message={rootMessage}
-              grouped={false}
-              inThread
-              editing={editingId === rootMessage.id}
-              onEditChange={(on) => setEditingId(on ? rootMessage.id : null)}
-              onRetry={() => undefined}
-              onDiscard={() => undefined}
-            />
-          ) : root.isError ? (
-            <p className="px-4 py-6 text-base text-fg-2">This thread’s first message couldn’t be loaded.</p>
-          ) : (
-            <div aria-busy="true" className="h-20" />
-          )}
+      {!filled && <div aria-busy="true" className="min-h-0 flex-1" />}
+      {filled && (
+        <DropZone label="Drop to reply with it" onFiles={(files) => void uploads.add(files)}>
+          <div
+            ref={scroller}
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+            }}
+            className="min-h-0 flex-1 overflow-y-auto px-1 pt-2 pb-4 md:px-3"
+          >
+            {rootMessage ? (
+              <MessageRow
+                message={rootMessage}
+                grouped={false}
+                inThread
+                editing={editingId === rootMessage.id}
+                onEditChange={(on) => setEditingId(on ? rootMessage.id : null)}
+                onRetry={() => undefined}
+                onDiscard={() => undefined}
+              />
+            ) : root.isError ? (
+              <p className="px-4 py-6 text-base text-fg-2">This thread’s first message couldn’t be loaded.</p>
+            ) : (
+              <div aria-busy="true" className="h-20" />
+            )}
 
-          <div className="flex items-center gap-3 px-3 pt-5 pb-1" role="separator" aria-label={`${count} replies`}>
-            <span className="rounded-full bg-hi px-3 py-1.5 text-xs leading-none font-extrabold text-on-hi" data-num>
-              {count} {count === 1 ? "reply" : "replies"}
-            </span>
-            <span className="h-[2px] flex-1 rounded-full bg-line" aria-hidden="true" />
+            <div
+              className="flex items-center gap-3 px-3 pt-5 pb-1"
+              role="separator"
+              aria-label={count ? `${count} ${count === 1 ? "reply" : "replies"}` : "No replies yet"}
+            >
+              {/* Lit when there is something to read; a thread nobody has answered yet says so quietly. */}
+              <span
+                className={`rounded-full px-3 py-1.5 text-xs leading-none font-extrabold ${count ? "bg-hi text-on-hi" : "bg-chip text-fg-2"}`}
+                data-num
+              >
+                {count ? `${count} ${count === 1 ? "reply" : "replies"}` : "No replies yet"}
+              </span>
+              <span className="h-[2px] flex-1 rounded-full bg-line" aria-hidden="true" />
+            </div>
+
+            {thread.hasNextPage && (
+              <button
+                type="button"
+                onClick={() => void thread.fetchNextPage()}
+                className="mx-3 mt-3 rounded-full bg-chip px-4 py-2 text-sm font-bold text-on-chip"
+              >
+                {thread.isFetchingNextPage ? "Loading…" : "Show earlier replies"}
+              </button>
+            )}
+            {rows.map((row) =>
+              row.kind === "message" ? (
+                <MessageRow
+                  key={row.key}
+                  message={row.message}
+                  grouped={row.grouped}
+                  inThread
+                  editing={editingId === row.message.id}
+                  onEditChange={(on) => setEditingId(on ? row.message.id : null)}
+                  onRetry={() => sender.retry(row.message)}
+                  onDiscard={() => sender.discard(row.message)}
+                />
+              ) : null,
+            )}
+            {thread.isPending && <div aria-busy="true" className="h-16" />}
           </div>
 
-          {thread.hasNextPage && (
-            <button
-              type="button"
-              onClick={() => void thread.fetchNextPage()}
-              className="mx-3 mt-3 rounded-full bg-chip px-4 py-2 text-sm font-bold text-on-chip"
-            >
-              {thread.isFetchingNextPage ? "Loading…" : "Show earlier replies"}
-            </button>
-          )}
-          {rows.map((row) =>
-            row.kind === "message" ? (
-              <MessageRow
-                key={row.key}
-                message={row.message}
-                grouped={row.grouped}
-                inThread
-                editing={editingId === row.message.id}
-                onEditChange={(on) => setEditingId(on ? row.message.id : null)}
-                onRetry={() => sender.retry(row.message)}
-                onDiscard={() => sender.discard(row.message)}
-              />
-            ) : null,
-          )}
-          {thread.isPending && <div aria-busy="true" className="h-16" />}
-        </div>
-
-        <Composer
-          key={`thread-${rootId}`}
-          channelId={channel.id}
-          draftKey={`thread:${rootId}`}
-          announceTyping={false}
-          placeholder="Reply…"
-          uploads={uploads}
-          onSend={(body, attachments) => {
-            stick.current = true;
-            sender.send(body, attachments);
-          }}
-          onEditLast={() => {
-            const mine = replies.findLast((m) => m.authorId === meId && !m.deletedAt && !m.status);
-            if (mine) setEditingId(mine.id);
-          }}
-          mentionable={mentionable}
-        />
-      </DropZone>
+          <Composer
+            key={`thread-${rootId}`}
+            channelId={channel.id}
+            draftKey={`thread:${rootId}`}
+            announceTyping={false}
+            placeholder="Reply…"
+            uploads={uploads}
+            onSend={(body, attachments) => {
+              stick.current = true;
+              sender.send(body, attachments);
+            }}
+            onEditLast={() => {
+              const mine = replies.findLast((m) => m.authorId === meId && !m.deletedAt && !m.status);
+              if (mine) setEditingId(mine.id);
+            }}
+            mentionable={mentionable}
+          />
+        </DropZone>
+      )}
     </aside>
   );
 }

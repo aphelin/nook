@@ -234,6 +234,36 @@ function hash(value: string) {
 }
 
 /** The face a handle gets until its owner picks one. */
+/**
+ * How far each shape reaches from its centre towards the bottom-right corner (40-unit box), where
+ * the presence mark sits: on the shape's own edge, so it touches a sparkle's notch or an arch's
+ * corner instead of floating in the box's empty corner. Measured from the paths above
+ * (`isPointInFill` along the diagonal); a shape added above needs its reach here.
+ */
+export const REACH_45: Record<FaceShape, number> = {
+  circle: 20,
+  flower: 19,
+  scallop: 16.6,
+  squircle: 23.1,
+  arch: 26.9,
+  clover: 18.8,
+  sparkle: 13.2,
+  pebble: 19,
+  star: 18.5,
+  burst: 20,
+  hex: 18,
+  pick: 15,
+  trefoil: 18.9,
+  wave: 15.6,
+  leaf: 26.2,
+  drop: 19.5,
+  bowl: 19.7,
+  blob: 14.6,
+  diamond: 14.3,
+  capsule: 17.6,
+  crown: 26.6,
+};
+
 export function generatedFace(handle: string): Face {
   const h = hash(handle.trim().toLowerCase());
   return { shape: GENERATED[h % GENERATED.length]!, tone: (((h >>> 8) % 3) + 1) as FaceTone };

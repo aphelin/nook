@@ -42,7 +42,7 @@ function ChannelTitle({ channel, slug, meId }: { channel: Channel; slug: string;
         render={<button type="button" className="flex min-w-0 items-center gap-3 rounded-chip text-left" />}
       >
         <Avatar user={channel.dmUser} size={52} presence={state} />
-        <span className="room-title head-trim">{channel.dmUser.displayName}</span>
+        <span className="room-title head-trim min-w-0">{channel.dmUser.displayName}</span>
       </PersonTrigger>
     );
   }
@@ -72,7 +72,7 @@ function WhosHere({ channel, detail, meId }: { channel: Channel; detail: NookDet
       {/* Only whole people: as many as the room is wide (four on a phone), then everyone behind "All". */}
       <ul
         aria-label="Who's here"
-        className="flex min-w-0 items-start gap-1 overflow-hidden pb-1 @max-md:[&>li:nth-child(n+5)]:hidden @max-3xl:[&>li:nth-child(n+7)]:hidden"
+        className="flex min-w-0 items-start gap-1 overflow-clip pb-1 [overflow-clip-margin:0.375rem] @max-md:[&>li:nth-child(n+5)]:hidden @max-3xl:[&>li:nth-child(n+7)]:hidden"
       >
         {shown.map((m) => (
           <Person key={m.id} member={m} state={states[m.id] ?? "offline"} slug={slug} meId={meId} />
@@ -108,11 +108,12 @@ function Person({ member, state, slug, meId }: { member: NookMember; state: Pres
         render={
           <button
             type="button"
+            data-grows
             className="group flex w-15 flex-col items-center gap-1.5 rounded-[1.25rem] pt-1 pb-1.5 transition-colors duration-150 hover:bg-hover data-[popup-open]:bg-hover"
           />
         }
       >
-        <span className="pop-in transition-[scale] duration-200 ease-out-expo group-hover:scale-105">
+        <span className="pop-in">
           <Avatar user={member} size={48} ring={here} />
         </span>
         <span className={`w-full truncate px-0.5 text-center text-xs ${here ? "font-bold" : "font-medium text-fg-2"}`}>
@@ -165,7 +166,9 @@ function ChannelIntro({ channel, nook, members }: { channel: Channel; nook: Nook
   // The channel's people at poster size, a crowd at the door.
   const crowd = members.filter((m) => channel.memberIds.includes(m.id)).slice(0, 6);
   return (
-    <div className="max-w-[58ch]">
+    // The reading measure is for the lines under the head; the head itself takes the room's width, so
+    // a hyphenated name is not broken in two while there is space beside it.
+    <div className="[&>p]:max-w-[58ch]">
       {crowd.length > 1 ? (
         <ul aria-label={`People in #${channel.name}`} className="flex flex-wrap gap-2">
           {crowd.map((m, i) => (

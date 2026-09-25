@@ -1,6 +1,8 @@
 "use client";
 
+import { Drawer } from "@base-ui/react/drawer";
 import type { NookMember, PresenceState } from "@nook/contracts";
+import { X } from "@phosphor-icons/react/dist/ssr";
 import { PersonTrigger, StatusEmoji } from "@/components/people/person-card";
 import { Avatar } from "@/components/ui/avatar";
 import { PRESENCE_LABEL } from "@/components/ui/presence-shape";
@@ -101,13 +103,22 @@ export function MemberSheet({ slug, members, meId }: { slug: string; members: No
 
   return (
     <aside aria-labelledby="members-heading" className="flex h-full min-h-0 w-full flex-col">
-      <div className="flex shrink-0 flex-col px-5 pt-7 pb-5">
-        <h2 id="members-heading" className="font-display text-2xl leading-none font-extrabold tracking-[-0.03em]">
-          Members
-        </h2>
-        <p className="mt-2 text-sm font-semibold text-fg-2" data-num>
-          {members.length} {members.length === 1 ? "member" : "members"}
-        </p>
+      {/* Headed like the thread and search panels: the title, its count, and a way out. */}
+      <div className="flex shrink-0 items-start gap-3 pt-7 pr-3 pb-5 pl-5">
+        <div className="min-w-0 flex-1">
+          <h2 id="members-heading" className="font-display text-2xl leading-none font-extrabold tracking-[-0.03em]">
+            Members
+          </h2>
+          <p className="mt-2 text-sm font-semibold text-fg-2" data-num>
+            {members.length} {members.length === 1 ? "member" : "members"}
+          </p>
+        </div>
+        <Drawer.Close
+          aria-label="Close members"
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-chip text-on-chip transition-[scale] duration-200 ease-out-expo hover:scale-105"
+        >
+          <X size={20} weight="bold" aria-hidden="true" />
+        </Drawer.Close>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-5">
         {presence.isPending ? (

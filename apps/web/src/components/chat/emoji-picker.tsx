@@ -31,10 +31,11 @@ export function EmojiPicker({ trigger, triggerContent, triggerLabel, onPick }: E
                 <Frimousse.Search
                   aria-label="Search emoji"
                   placeholder="Search emoji"
-                  className="h-11 w-full rounded-full bg-chip px-4 text-base text-on-chip outline-none placeholder:text-fg-2 focus-visible:inset-ring-2 focus-visible:inset-ring-hi"
+                  className="h-11 w-full rounded-full bg-chip px-4 text-base text-on-chip outline-none placeholder:text-fg-2 focus-visible:inset-ring-2 focus-visible:inset-ring-hi [&::-webkit-search-cancel-button]:appearance-none"
                 />
               </div>
-              <Frimousse.Viewport className="relative flex-1 outline-none">
+              {/* The scrollbar's gutter on both sides, so the grid stays centred when it is showing. */}
+              <Frimousse.Viewport className="relative flex-1 outline-none ![scrollbar-gutter:stable_both-edges]">
                 <Frimousse.Loading className="absolute inset-0 flex items-center justify-center text-sm text-fg-2">
                   Loading emoji…
                 </Frimousse.Loading>
@@ -49,8 +50,11 @@ export function EmojiPicker({ trigger, triggerContent, triggerLabel, onPick }: E
                         {category.label}
                       </div>
                     ),
+                    // Eight even columns across the same width as the search field, so the grid sits
+                    // centred under it instead of leaving its spare width all on the right.
                     Row: ({ children, ...props }) => (
-                      <div {...props} className="scroll-my-1.5 px-1.5">
+                      // (important: the library sets display:flex on each row inline)
+                      <div {...props} className="!grid scroll-my-1.5 grid-cols-8 justify-items-center px-2">
                         {children}
                       </div>
                     ),

@@ -6,6 +6,7 @@ import { useId, useLayoutEffect, useRef, useState } from "react";
 import { colourName } from "@/lib/colour-name";
 import { SHAPE_NAMES, SHAPES } from "@/lib/faces";
 import { gsap, reducedMotion, useGSAP } from "@/lib/motion";
+import { Initial } from "@/components/brand/initial";
 
 const TONES: FaceTone[] = [1, 2, 3];
 
@@ -106,8 +107,8 @@ export function FacePreview({ face, initial, size = 88 }: { face: Face; initial:
       const blend = () => from.map((r, k) => r + (to[k]! - r) * state.p);
       morph.current = gsap.to(state, {
         p: 1,
-        duration: 0.5,
-        ease: "nook",
+        duration: 0.65,
+        ease: "nook-morph",
         onUpdate: () => {
           now.current = blend();
           el.setAttribute("d", outline(now.current));
@@ -117,7 +118,7 @@ export function FacePreview({ face, initial, size = 88 }: { face: Face; initial:
           el.setAttribute("d", SHAPES[target]);
         },
       });
-      gsap.fromTo(svg.current, { scale: 0.94 }, { scale: 1, duration: 0.45, ease: "nook-pop", overwrite: true });
+      gsap.fromTo(svg.current, { scale: 0.92 }, { scale: 1, duration: 0.6, ease: "nook-pop", overwrite: true });
     },
     { dependencies: [face.shape] },
   );
@@ -134,24 +135,13 @@ export function FacePreview({ face, initial, size = 88 }: { face: Face; initial:
       className="shrink-0 overflow-visible"
     >
       <path ref={path} d={first} className="tint" style={{ fill: `var(--face-${face.tone})` }} />
-      <text
-        x="20"
-        y="21"
-        dy="0.35em"
-        textAnchor="middle"
-        fontSize="19"
-        fontWeight={800}
-        className="tint font-display"
-        style={{ fill: `var(--on-face-${face.tone})` }}
-      >
-        {initial}
-      </text>
+      <Initial char={initial} y={21} style={{ fill: `var(--on-face-${face.tone})` }} />
     </svg>
   );
 }
 
 const cell =
-  "relative grid cursor-pointer place-items-center rounded-full transition-[scale,background-color] duration-200 ease-out-expo hover:scale-110 hover:bg-hover active:scale-95 has-[:checked]:bg-chip has-[:checked]:inset-ring-[2.5px] has-[:checked]:inset-ring-fg has-[:focus-visible]:outline-[2.5px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-fg";
+  "relative grid cursor-pointer place-items-center rounded-full transition-[background-color] duration-200 ease-out-expo [--grow:1.12] hover:bg-hover has-[:checked]:bg-chip has-[:checked]:inset-ring-[2.5px] has-[:checked]:inset-ring-fg has-[:focus-visible]:outline-[2.5px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-fg";
 
 export function FacePicker({
   face,
@@ -176,7 +166,7 @@ export function FacePicker({
   const [spoken, setSpoken] = useState<string[]>([]);
   useLayoutEffect(() => {
     const named = swatches.current.map((svg) => {
-      const [fill, ink] = [svg?.querySelector("path"), svg?.querySelector("text")].map((el) =>
+      const [fill, ink] = [svg?.querySelector("path:not([data-initial])"), svg?.querySelector("[data-initial]")].map((el) =>
         el ? colourName(getComputedStyle(el).fill) : "",
       );
       return fill ? `${fill[0]!.toUpperCase()}${fill.slice(1)}${ink ? `, with a ${ink} initial` : ""}` : "";
@@ -210,7 +200,7 @@ export function FacePicker({
           className="grid grid-cols-[repeat(auto-fill,minmax(2.875rem,1fr))] gap-1 pt-1"
         >
           {FACE_SHAPES.map((shape: FaceShape) => (
-            <label key={shape} className={`${cell} aspect-square`}>
+            <label key={shape} data-grows className={`${cell} aspect-square`}>
               <input
                 type="radio"
                 name="face-shape"
@@ -222,7 +212,7 @@ export function FacePicker({
               />
               <svg viewBox="0 0 40 40" aria-hidden="true" className="size-[62%] overflow-visible">
                 {/* Silhouettes in the card's highlight, certified on it in both schemes; colour is picked below. */}
-                <path d={SHAPES[shape]} className="tint fill-hi" />
+                <path data-grow d={SHAPES[shape]} className="tint fill-hi" />
               </svg>
             </label>
           ))}
@@ -237,7 +227,7 @@ export function FacePicker({
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div role="radiogroup" aria-labelledby={ids.tone} aria-describedby={ids.toneHint} className="flex gap-1.5">
               {TONES.map((tone) => (
-                <label key={tone} className={`${cell} size-14`}>
+                <label key={tone} data-grows className={`${cell} size-14`}>
                   <input
                     type="radio"
                     name="face-tone"
@@ -255,19 +245,10 @@ export function FacePicker({
                     aria-hidden="true"
                     className="size-10 overflow-visible"
                   >
-                    <path d={SHAPES[face.shape]} className="tint" style={{ fill: `var(--face-${tone})` }} />
-                    <text
-                      x="20"
-                      y="21"
-                      dy="0.35em"
-                      textAnchor="middle"
-                      fontSize="19"
-                      fontWeight={800}
-                      className="tint font-display"
-                      style={{ fill: `var(--on-face-${tone})` }}
-                    >
-                      {initial}
-                    </text>
+                    <g data-grow>
+                      <path d={SHAPES[face.shape]} className="tint" style={{ fill: `var(--face-${tone})` }} />
+                      <Initial char={initial} y={21} style={{ fill: `var(--on-face-${tone})` }} />
+                    </g>
                   </svg>
                 </label>
               ))}

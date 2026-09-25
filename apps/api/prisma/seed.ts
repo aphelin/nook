@@ -237,6 +237,15 @@ const nooks: {
   },
 ];
 
+/**
+ * A channel's opening date is its first message's (the "opened the channel" line): its history is
+ * backdated, and a channel dated today whose transcript starts last week contradicts itself.
+ */
+async function openedAtFirstMessage(channelId: string) {
+  const first = await prisma.message.findFirst({ where: { channelId }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+  if (first) await prisma.channel.updateMany({ where: { id: channelId, createdAt: { gt: first.createdAt } }, data: { createdAt: first.createdAt } });
+}
+
 async function main() {
   const passwordHash = await argon2.hash(DEMO_PASSWORD, { type: argon2.argon2id });
   const ids = {} as Record<Handle, string>;
@@ -307,7 +316,10 @@ async function main() {
     for (const [key, lines] of Object.entries(n.history)) {
       const channelId = channelIds[key];
       if (!channelId) throw new Error(`seed history refers to unknown channel ${key}`);
-      if ((await prisma.message.count({ where: { channelId } })) > 0) continue;
+      if ((await prisma.message.count({ where: { channelId } })) > 0) {
+        await openedAtFirstMessage(channelId);
+        continue;
+      }
       const at = (minutesAgo: number) => Date.now() - minutesAgo * 60_000;
       // Ids are UUIDv7 minted at the message's own time, so id order matches time order.
       const rows = lines.map(([author, minutesAgo, body, extras]) => ({
@@ -337,6 +349,7 @@ async function main() {
           })),
         });
       }
+      await openedAtFirstMessage(channelId);
       // Every message as saved, replies included, to derive mentions and notifications from.
       const saved: { id: string; author: Handle; minutesAgo: number; body: string; root: { id: string; author: Handle } | null }[] = rows.map(
         (r) => ({ ...r, root: null }),

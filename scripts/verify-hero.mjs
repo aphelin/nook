@@ -75,10 +75,19 @@ for (const vp of [
   if (vp.width === 1440) {
     const six = await page.evaluate(() => {
       const band = [...document.querySelectorAll('.crowd [data-crowd-band]')].find((b) => b.getClientRects().length > 0);
+      // Where the physics has them now: their drawn outline, and what is on top at its middle.
       return [...band.querySelectorAll('[data-handle]')].map((p) => {
-        const r = p.getBoundingClientRect();
-        const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height * 0.55);
-        return { h: p.dataset.handle, inView: r.top >= 0 && r.bottom <= innerHeight + 0.5 && r.left >= 0 && r.right <= innerWidth, uncovered: hit?.closest('[data-person]') === p };
+        const path = p.querySelector('svg path');
+        const m = path.getScreenCTM();
+        const L = path.getTotalLength();
+        const pts = Array.from({ length: 96 }, (_, i) => {
+          const q = path.getPointAtLength((L * i) / 96);
+          return [m.a * q.x + m.c * q.y + m.e, m.b * q.x + m.d * q.y + m.f];
+        });
+        const r = { left: Math.min(...pts.map((q) => q[0])), right: Math.max(...pts.map((q) => q[0])), top: Math.min(...pts.map((q) => q[1])), bottom: Math.max(...pts.map((q) => q[1])) };
+        const centre = new DOMPoint(20, 21).matrixTransform(m);
+        const hit = document.elementFromPoint(centre.x, centre.y);
+        return { h: p.dataset.handle, inView: r.top >= 0 && r.bottom <= innerHeight + 1 && r.left >= -1 && r.right <= innerWidth + 1, uncovered: hit?.closest('[data-person]') === p };
       });
     });
     if (six.length !== 6) fail(`expected the six named people in the crowd, found ${six.length}`);

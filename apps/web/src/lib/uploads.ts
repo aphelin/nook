@@ -65,16 +65,24 @@ export function useUploads() {
     setItems((all) => all.map((u) => (u.localId === localId ? { ...u, ...change } : u)));
   }, []);
 
+  // A message lists its files in the order their tickets were issued, so tickets are asked for one
+  // after another, in the order the files were attached; the bytes still go up side by side.
+  const tickets = useRef<Promise<unknown>>(Promise.resolve());
+
   const start = useCallback(
     async (item: PendingUpload) => {
       const controller = new AbortController();
       controllers.current.set(item.localId, controller);
       try {
-        const ticket = await api("/uploads", {
-          method: "POST",
-          body: { fileName: item.file.name, mimeType: item.file.type, size: item.file.size },
-          schema: UploadTicket,
-        });
+        const issued = tickets.current.then(() =>
+          api("/uploads", {
+            method: "POST",
+            body: { fileName: item.file.name, mimeType: item.file.type, size: item.file.size },
+            schema: UploadTicket,
+          }),
+        );
+        tickets.current = issued.catch(() => undefined);
+        const ticket = await issued;
         await put(ticket.uploadUrl, item.file, ticket.headers, (p) => patch(item.localId, { progress: p }), controller.signal);
         await api(`/uploads/${ticket.attachmentId}/complete`, { method: "POST" });
         patch(item.localId, { status: "ready", progress: 1, attachmentId: ticket.attachmentId });

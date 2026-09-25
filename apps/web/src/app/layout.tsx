@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Funnel_Display, Funnel_Sans } from "next/font/google";
+import { Funnel_Display, Funnel_Sans, JetBrains_Mono } from "next/font/google";
 import { QueryProvider } from "@/lib/query";
 import { RealtimeProvider } from "@/lib/realtime";
 import { SessionProvider } from "@/lib/session";
@@ -27,6 +27,16 @@ const display = Funnel_Display({
   display: "swap",
 });
 
+/*
+ * Code. Only where something is meant to be typed exactly — a command, a snippet in a message —
+ * so it is never left to whichever monospace the reader's system happens to have.
+ */
+const code = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-code",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: { default: "Nook", template: "%s · Nook" },
   description: "A chat app for communities and clubs.",
@@ -41,7 +51,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} h-full`}>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${code.variable} h-full`}>
       <body className="surface-stage min-h-full">
         <SessionProvider>
           <QueryProvider>

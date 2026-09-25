@@ -98,7 +98,10 @@ function ReactionChip({ message, reaction: r }: { message: Message; reaction: Me
               className={`tint press inline-flex h-8 items-center gap-1.5 rounded-full pr-2.5 pl-2 text-sm leading-none hover:scale-105 ${
                 mine
                   ? "bg-hi font-extrabold text-on-hi [--face-1:var(--on-hi)] [--face-2:var(--on-hi)] [--face-3:var(--on-hi)] [--on-face-1:var(--hi)] [--on-face-2:var(--hi)] [--on-face-3:var(--hi)]"
-                  : "surface-card font-bold"
+                  : // The surface's own chip, so a reaction reads on the room and on a card alike (a card-coloured
+                    // chip on a card vanished), with the faces a card gives people: the day room's chip is white,
+                    // and one of the room's own face colours is white too.
+                    "bg-chip font-bold text-on-chip [--face-1:var(--card-face-1)] [--face-2:var(--card-face-2)] [--face-3:var(--card-face-3)] [--on-face-1:var(--card-on-face-1)] [--on-face-2:var(--card-on-face-2)] [--on-face-3:var(--card-on-face-3)]"
               }`}
             />
           }

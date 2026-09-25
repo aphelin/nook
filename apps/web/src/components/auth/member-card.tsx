@@ -27,12 +27,12 @@ export function MemberCard({ displayName, handle, since = new Date() }: MemberCa
         <Mark size={40} variant="kit" />
       </div>
       <div className="px-6 pb-6">
-        <span className="-mt-12 inline-block rounded-full bg-bg p-1.5">
-          <Avatar user={{ displayName: name, handle: handle || "nook", avatarUrl: null }} size={84} presence="online" />
+        <span className="-mt-12 inline-block p-1.5">
+          <Avatar user={{ displayName: name, handle: handle || "nook", avatarUrl: null }} size={84} presence="online" halo={6} />
         </span>
         <figcaption className="mt-3 min-w-0">
           <p
-            className={`line-clamp-2 font-display text-3xl leading-[1.02] font-extrabold tracking-[-0.03em] break-words ${name ? "text-fg" : "text-fg-2"}`}
+            className={`line-clamp-2 font-display text-3xl leading-[1.02] font-extrabold tracking-[-0.03em] [overflow-wrap:anywhere] ${name ? "text-fg" : "text-fg-2"}`}
           >
             {name || "Your name"}
           </p>

@@ -183,7 +183,7 @@ function build(kit: Kit, scheme: Scheme): Palette {
   // The deep colour, as the wing. A neutral keeps its own depth rather than being lifted into grey.
   const wingL = deepNeutral ? Math.min(lightness(deepSource), 0.14) : 0.27;
   const wingDay = settle(at(deepSource, wingL, { min: 0.42 }), WHITE, 6.5, BLACK);
-  const wing = scheme === "light" ? wingDay : settle(at(deepSource, deepNeutral ? 0.1 : 0.14, { min: 0.4 }), WHITE, 12, BLACK);
+  const wing = scheme === "light" ? wingDay : settle(at(deepSource, deepNeutral ? 0.1 : 0.14, { min: 0.4 }), WHITE, 9, BLACK);
   const rail = settle(mix(BLACK, wing, 0.3), WHITE, 9, BLACK);
   // Deep ink: the darkest version of the club, for text on the bright colour and on white.
   const ink = press(at(deepSource, 0.09, { max: 0.6 }), [WHITE], 16, BLACK);
@@ -384,6 +384,36 @@ export function discStyle(kit: Kit): CSSProperties {
     "--on-disc": pair(day.onBright, night.onBright),
     "--disc-deep": pair(day.deep, night.wing.bg),
   } as CSSProperties;
+}
+
+/**
+ * A kit as a choice to make (the create-nook swatches): the room it will fill and the highlight on
+ * it, in the reader's scheme. By day that is the bright colour over the deep one; by night the room
+ * is the deep colour and the bright one lights it, so a swatch of bright-over-black would promise a
+ * page it does not turn into.
+ */
+export function swatchStyle(kit: Kit): CSSProperties {
+  const day = build(kit, "light");
+  const night = build(kit, "dark");
+  return {
+    "--swatch-room": pair(day.stage.bg, night.stage.bg),
+    "--swatch-hi": pair(day.stage.hi, night.stage.hi),
+  } as CSSProperties;
+}
+
+/**
+ * The paint a club pours over the screen when you change to it (story-turn): the highlight of its
+ * room, which stands out against the room it uncovers in either scheme, with a darker lip for its
+ * wet edge and a lighter stripe for the light it catches.
+ */
+export function paintStyle(kit: Kit): { paint: string; rim: string; gloss: string } {
+  const day = build(kit, "light").stage.hi;
+  const night = build(kit, "dark").stage.hi;
+  return {
+    paint: pair(day, night),
+    rim: pair(mix(BLACK, day, 0.22), mix(BLACK, night, 0.22)),
+    gloss: pair(mix(WHITE, day, 0.38), mix(WHITE, night, 0.38)),
+  };
 }
 
 /** The colours as plain values, for the checks and for anything drawn outside CSS. */

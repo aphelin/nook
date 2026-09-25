@@ -92,10 +92,11 @@ export default function AppHome() {
                   aria-invalid={!!linkError}
                   aria-describedby={linkError ? "invite-link-error" : undefined}
                   placeholder="…/join/abc123"
-                  className="h-14 min-w-0 flex-1 rounded-full bg-chip px-5 text-md text-on-chip outline-none placeholder:text-[color-mix(in_oklab,var(--on-chip)_60%,transparent)] focus-visible:inset-ring-2 focus-visible:inset-ring-hi aria-[invalid=true]:inset-ring-2 aria-[invalid=true]:inset-ring-alert"
+                  className="h-14 min-w-0 flex-1 rounded-field bg-chip px-5 text-md text-on-chip outline-none placeholder:text-[color-mix(in_oklab,var(--on-chip)_60%,transparent)] focus-visible:inset-ring-2 focus-visible:inset-ring-hi aria-[invalid=true]:inset-ring-2 aria-[invalid=true]:inset-ring-alert"
                 />
-                <Button type="submit" className="h-14 px-7 text-md">
-                  Join
+                {/* The same weight and size as "Start a nook": two ways in, side by side. */}
+                <Button type="submit" className="h-14 px-7 text-lg font-extrabold">
+                  Join <ArrowRight size={22} weight="bold" aria-hidden="true" />
                 </Button>
               </div>
               {linkError && (
